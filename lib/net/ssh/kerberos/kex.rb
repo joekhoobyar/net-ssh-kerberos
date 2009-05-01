@@ -1,4 +1,5 @@
 require 'net/ssh/kerberos/kex/krb5_diffie_hellman_group1_sha1'
+require 'net/ssh/kerberos/kex/krb5_diffie_hellman_group_exchange_sha1'
 
 module Net; module SSH; module Kerberos
   module Kex
