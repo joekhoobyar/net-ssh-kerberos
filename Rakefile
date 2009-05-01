@@ -6,9 +6,14 @@ begin
   Jeweler::Tasks.new do |gem|
     gem.name = "net-ssh-kerberos"
     gem.summary = %Q{Add Kerberos support to Net::SSH}
+    gem.description = <<-EOTEXT
+Adds support for Microsoft Kerberos (SSPI) with the Net:SSH gem.
+EOTEXT
     gem.email = "joe@ankhcraft.com"
     gem.homepage = "http://github.com/joekhoobyar/net-ssh-kerberos"
     gem.authors = ["Joe Khoobyar"]
+    gem.add_runtime_dependency(%q<net-ssh>, [">= 2.0"])
+    gem.add_runtime_dependency(%q<rubysspi>, [">= 1.3"])
 
     # gem is a Gem::Specification... see http://www.rubygems.org/read/chapter/20 for additional settings
   end
@@ -49,7 +54,7 @@ Rake::RDocTask.new do |rdoc|
   end
 
   rdoc.rdoc_dir = 'rdoc'
-  rdoc.title = "net-ssh-kerberos #{version}"
+  rdoc.title = "Net-ssh-kerberos #{version}"
   rdoc.rdoc_files.include('README*')
   rdoc.rdoc_files.include('lib/**/*.rb')
 end

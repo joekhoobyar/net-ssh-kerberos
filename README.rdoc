@@ -1,6 +1,6 @@
 = net-ssh-kerberos
 
-Description goes here.
+Adds Kerberos support to Net::SSH
 
 == Copyright
 
