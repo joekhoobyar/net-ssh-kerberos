@@ -1,0 +1,7 @@
+= net-ssh-kerberos
+
+Description goes here.
+
+== Copyright
+
+Copyright (c) 2009 Joe Khoobyar. See LICENSE for details.
