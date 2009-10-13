@@ -4,7 +4,7 @@ include Win32::SSPI
 
 class SspiTest < Test::Unit::TestCase
 
-if RUBY_PLATFORM.include?('win') && ! RUBY_PLATFORM.include?('dar'); then
+if defined? Net::SSH::Kerberos::SSPI::GSSContext
 
   def test_query_security_package_info
     pkg_info = SecPkgInfo.new
@@ -64,6 +64,8 @@ if RUBY_PLATFORM.include?('win') && ! RUBY_PLATFORM.include?('dar'); then
       assert creds.nil?, "FreeCredentialsHandle failed: #{result}"
     end
   end
+else
+  $stderr.puts "Skipping SSPI tests on this platform: Windows SSPI was not loaded."
 end
 
 end

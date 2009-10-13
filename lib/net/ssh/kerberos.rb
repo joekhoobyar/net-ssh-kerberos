@@ -2,7 +2,15 @@ require 'net/ssh'
 require 'net/ssh/kerberos/constants'
 #require 'net/ssh/kerberos/kex'
 if RUBY_PLATFORM.include?('win') && ! RUBY_PLATFORM.include?('dar'); then
-  require 'net/ssh/kerberos/sspi'
+  begin
+    require 'net/ssh/kerberos/sspi'
+  rescue Exception => e
+    if RuntimeError === e and e.message =~ /^LoadLibrary: ([^\s]+)/
+      $stderr.puts "error: While loading Kerberos SSPI: failed to load library: #{$1}"
+    else
+      raise e
+    end
+  end
 else
   $stderr.puts "warning: Kerberos support for non-Windows systems is not yet implemented."
 end
