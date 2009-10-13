@@ -4,6 +4,8 @@ include Win32::SSPI
 
 class SspiTest < Test::Unit::TestCase
 
+if RUBY_PLATFORM.include?('win') && ! RUBY_PLATFORM.include?('dar'); then
+
   def test_query_security_package_info
     pkg_info = SecPkgInfo.new
     result = SSPIResult.new(API::QuerySecurityPackageInfo.call("Kerberos", pkg_info.to_p))
@@ -62,5 +64,7 @@ class SspiTest < Test::Unit::TestCase
       assert creds.nil?, "FreeCredentialsHandle failed: #{result}"
     end
   end
+end
+
 end
 
