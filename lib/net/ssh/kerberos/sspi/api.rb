@@ -28,6 +28,7 @@ module Win32; module SSPI
     QueryCredentialsAttributes = Win32API.new("secur32", "QueryCredentialsAttributesA", 'pLp', 'L')
     QueryContextAttributes = Win32API.new("secur32", "QueryContextAttributesA", 'pLp', 'L')
     CompleteAuthToken = Win32API.new("secur32", "CompleteAuthToken", 'pp', 'L')
+    MakeSignature = Win32API.new("secur32", "MakeSignature", 'pLpL', 'L')
     FreeContextBuffer = Win32API.new("secur32", "FreeContextBuffer", 'P', 'L')
   end
 
@@ -99,6 +100,12 @@ module Win32; module SSPI
 	  def token(n=0)
 	    unpack
 	    @bufferTokens[n]
+	  end
+	  
+	  def set_buffer(n=0, type=SECBUFFER_TOKEN, token=nil, size=0)
+	    @bufferTypes[n] = type
+	    @bufferSizes[n] = size || token.length
+	    @bufferTokens[n] = (token.nil? && size > 0) ? "\0" * size : token
 	  end
 	  
 	  def to_p
@@ -188,16 +195,26 @@ module Net; module SSH; module Kerberos; class SSPI
     unless result.ok?
       raise GeneralError, "Error initializing security context: #{result}"
     end
-    @state = { :handle => ctx, :result => result, :buffers => output.buffer, :stamp => ts }
+    @state = { :handle => ctx, :result => result, :token => output.buffer, :stamp => ts }
       
     if result == 0
       @sizes = SecPkgSizes.new
 			result = SSPIResult.new(API::QuerySecurityPackageSizes.call(ctx.to_p, @sizes.to_p))
 			@handle = @state[:handle]
     end
+    
+    @state[:token]
   end
   
   def get_mic(token=nil)
+    buffers = SecurityBuffer.new 2
+    buffers.set_buffer 0, SECBUFFER_DATA, token
+    buffers.set_buffer 1, SECBUFFER_TOKEN, nil, @sizes.max_signature
+    sspiState[:result] = SSPIResult.new(API::MakeSignature(@handle, 0, buffers, 0))
+    unless sspiState[:result].ok?
+      raise GeneralError, "Error creating the signature: #{result}"
+    end
+    return buffers.buffer(1)
   end
   
   def dispose()
