@@ -143,7 +143,7 @@ module Win32; module SSPI
 	
 end; end
 
-module Net; module SSH; module Kerberos; class SSPI
+module Net; module SSH; module Kerberos; module SSPI; class GSSContext
 
   class GeneralError < StandardError; end
 
@@ -206,6 +206,10 @@ module Net; module SSH; module Kerberos; class SSPI
     @state[:token]
   end
   
+  def established?
+    @handle && (@handle.upper.nonzero? || @handle.lower.nonzero?) && (@state.nil? || @state[:result].zero?)
+  end
+  
   def get_mic(token=nil)
     buffers = SecurityBuffer.new 2
     buffers.set_buffer 0, SECBUFFER_DATA, token
@@ -228,4 +232,4 @@ module Net; module SSH; module Kerberos; class SSPI
     end
   end 
 
-end; end; end; end
+end; end; end; end; end
