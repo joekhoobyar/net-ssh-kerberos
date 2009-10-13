@@ -33,6 +33,7 @@ Gem::Specification.new do |s|
   s.homepage = %q{http://github.com/joekhoobyar/net-ssh-kerberos}
   s.rdoc_options = ["--charset=UTF-8"]
   s.require_paths = ["lib"]
+  s.rubyforge_project = %q{net-ssh-krb}
   s.rubygems_version = %q{1.3.4}
   s.summary = %q{Add Kerberos support to Net::SSH}
   s.test_files = [
