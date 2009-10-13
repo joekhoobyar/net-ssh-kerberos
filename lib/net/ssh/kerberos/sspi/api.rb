@@ -23,12 +23,10 @@ module Win32; module SSPI
   SECPKG_ATTR_SIZES = 0
   SECPKG_ATTR_STREAM_SIZES = 4
 
-	SECURITY_NATIVE_DREP       = 16;
-  SECURITY_NETWORK_DREP      = 0;
-
   module API
     QuerySecurityPackageInfo = Win32API.new("secur32", "QuerySecurityPackageInfoA", 'pp', 'L')
     QueryCredentialsAttributes = Win32API.new("secur32", "QueryCredentialsAttributesA", 'pLp', 'L')
+    QueryContextAttributes = Win32API.new("secur32", "QueryContextAttributesA", 'pLp', 'L')
     CompleteAuthToken = Win32API.new("secur32", "CompleteAuthToken", 'pp', 'L')
     FreeContextBuffer = Win32API.new("secur32", "FreeContextBuffer", 'P', 'L')
   end
@@ -48,8 +46,94 @@ module Win32; module SSPI
     end
     
     def to_p; @struct ||= "\0" * 4 end
-	end
+  end
 
+	class SecPkgSizes
+	  attr_reader :struct
+	  
+	  def max_token; unpacked[0] end
+	  def max_signature; unpacked[1] end
+	  def block_size; unpacked[2] end 
+	  def security_trailer; unpacked[3] end
+	  
+	  def unpacked;
+	    @unpacked ||= @struct.to_ptr.ptr.to_a("LLLL", 4)
+	  end
+	  
+	  def to_p; @struct ||= "\0" * 4 end
+	end
+	
+	# Creates binary representaiton of a SecBufferDesc structure,
+	# including the SecBuffer contained inside.
+	class SecurityBuffer
+	
+	  def initialize(buffers=nil)
+	    case buffers
+	    when String
+		    @bufferTokens = [ buffers ]
+		    @bufferSizes = [ buffers.length ]
+		    @bufferTypes = [ SECBUFFER_TOKEN ]
+		  when Fixnum
+		    @bufferTokens = [ "\0" * TOKENBUFSIZE ] * buffers
+		    @bufferSizes = [ TOKENBUFSIZE ] * buffers
+		    @bufferTypes = [ SECBUFFER_TOKEN ] * buffers
+		  when NilClass
+		    @bufferTokens = [ "\0" * TOKENBUFSIZE ]
+		    @bufferSizes = [ TOKENBUFSIZE ]
+		    @bufferTypes = [ SECBUFFER_TOKEN ]
+	    else
+	      raise ArgumentError
+		  end
+	  end
+	  
+	  def bufferSize(n=0)
+	    unpack
+	    @bufferSizes[n]
+	  end
+	  
+	  def bufferType(n=0)
+	    unpack
+	    @bufferTypes[n]
+	  end
+	  
+	  def token(n=0)
+	    unpack
+	    @bufferTokens[n]
+	  end
+	  
+	  def to_p
+	    # Assumption is that when to_p is called we are going to get a packed structure. Therefore,
+	    # set @unpacked back to nil so we know to unpack when accessors are next accessed.
+	    @unpacked = nil
+	    # Assignment of inner structure to variable is very important here. Without it,
+	    # will not be able to unpack changes to the structure. Alternative, nested unpacks,
+	    # does not work (i.e. @struct.unpack("LLP12")[2].unpack("LLP12") results in "no associated pointer")
+	    @sec_buffers ||= @bufferTokens.inject([]) do |v,t|
+	      v.push @bufferSizes[v.size / 3], @bufferTypes[v.size / 3], t
+	    end.pack("LLP" * @bufferTokens.size)
+	    @struct ||= [SECBUFFER_VERSION, @bufferTokens.size, @sec_buffers].pack("LLP")    
+	  end
+	
+	private
+	
+	  # Unpacks the SecurityBufferDesc structure into member variables. We
+	  # only want to do this once per struct, so the struct is deleted
+	  # after unpacking. 
+	  def unpack
+	    if ! @unpacked && @sec_buffers && @struct
+	      d = @sec_buffers.unpack("LLL" * @bufferTokens.size)
+	      k = ''; 0.upto(@bufferTokens.size - 1) do |n| k << "LLP#{d[n * 3]}" end
+	      d = @sec_buffers.unpack(k)
+	      0.upto(@bufferTokens.size - 1) do |n| @bufferSizes[n] = d[n * 3] end
+	      0.upto(@bufferTokens.size - 1) do |n| @bufferTypes[n] = d[n * 3 + 1] end
+	      0.upto(@bufferTokens.size - 1) do |n| @bufferTokens[n] = d[n * 3 + 2][0,@bufferSizes[n]] end
+	      @struct = nil
+	      @sec_buffers = nil
+	      @unpacked = true
+	    end
+	  end
+	end
+	
 end; end
 
 module Net; module SSH; module Kerberos; class SSPI
@@ -107,7 +191,13 @@ module Net; module SSH; module Kerberos; class SSPI
     @state = { :handle => ctx, :result => result, :buffers => output.buffer, :stamp => ts }
       
     if result == 0
+      @sizes = SecPkgSizes.new
+			result = SSPIResult.new(API::QuerySecurityPackageSizes.call(ctx.to_p, @sizes.to_p))
+			@handle = @state[:handle]
     end
+  end
+  
+  def get_mic(token=nil)
   end
   
   def dispose()
