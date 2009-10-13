@@ -80,6 +80,16 @@ module Win32; module SSPI
   end
 
   SecPkgCredentialsNames = Struct.new(:user_name)
+
+  class SSPIResult
+
+    def temporary_failure?
+      case value
+      when SEC_E_LOGON_DENIED, SEC_E_NO_AUTHENTICATING_AUTHORITY, SEC_E_NO_CREDENTIALS
+        value
+      end
+    end
+  end
   
   class SecPkgInfo
     attr_reader :struct

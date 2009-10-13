@@ -1,4 +1,4 @@
-require 'test_helper'
+require File.join(File.dirname(__FILE__), 'test_helper.rb')
 
 class NetSshKerberosTest < Test::Unit::TestCase
   def test_something_for_real
