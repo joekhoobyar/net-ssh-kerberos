@@ -77,17 +77,41 @@ module Win32; module SSPI
     CompleteAuthToken = Win32API.new("secur32", "CompleteAuthToken", 'pp', 'L')
     MakeSignature = Win32API.new("secur32", "MakeSignature", 'pLpL', 'L')
     FreeContextBuffer = Win32API.new("secur32", "FreeContextBuffer", 'P', 'L')
+
+  private
+
+    def self.method_missing(symbol, *args)
+      return super unless const_defined? symbol and Win32API === (api = const_get(symbol))
+      result = SSPIResult.new api.call(*args)
+      args = (1..(args.length)).inject([]) { |v,n| v << "a#{n}" }.join ', '
+      class_eval "def self.#{symbol}(#{args}); SSPIResult.new #{symbol}.call(#{args}) end"
+      result
+    end
   end
 
   SecPkgCredentialsNames = Struct.new(:user_name)
 
+  class SecurityHandle
+    def nil?; @struct.unpack('Q').first.zero? end
+    alias :to_str :to_p
+  end
+
+  class TimeStamp
+    def nil?; @struct.unpack('Q').first.zero? end
+    alias :to_str :to_p
+  end
+
   class SSPIResult
+    def ok?; (value & 0x80000000).zero? end
+
+    def complete?; value.zero? end
+
+    def incomplete?; SEC_I_COMPLETE_NEEDED==value || SEC_I_COMPLETE_AND_CONTINUE==value end
+
+    def failure?; (value & 0x80000000).nonzero? end
 
     def temporary_failure?
-      case value
-      when SEC_E_LOGON_DENIED, SEC_E_NO_AUTHENTICATING_AUTHORITY, SEC_E_NO_CREDENTIALS
-        value
-      end
+      value==SEC_E_LOGON_DENIED || value==SEC_E_NO_AUTHENTICATING_AUTHORITY || value==SEC_E_NO_CREDENTIALS
     end
   end
   
@@ -104,6 +128,7 @@ module Win32; module SSPI
     end
     
     def to_p; @struct ||= "\0" * 4 end
+    alias :to_str :to_p
   end
 
 	class SecPkgSizes
@@ -119,6 +144,7 @@ module Win32; module SSPI
 	  end
 	  
 	  def to_p; @struct ||= "\0" * 16 end
+    alias :to_str :to_p
 	end
 	
 	# Creates binary representaiton of a SecBufferDesc structure,
@@ -177,6 +203,7 @@ module Win32; module SSPI
 	    end.pack("LLP" * @bufferTokens.size)
 	    @struct ||= [SECBUFFER_VERSION, @bufferTokens.size, @sec_buffers].pack("LLP")    
 	  end
+    alias :to_str :to_p
 	
 	private
 	
