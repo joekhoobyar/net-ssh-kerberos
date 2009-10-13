@@ -149,10 +149,10 @@ module Win32; module SSPI
 	    @bufferTokens[n]
 	  end
 	  
-	  def set_buffer(n=0, type=SECBUFFER_TOKEN, token=nil, size=0)
+	  def set_buffer(n=0, type=SECBUFFER_TOKEN, token=nil, size=nil)
 	    @bufferTypes[n] = type
-	    @bufferSizes[n] = size || token.length
-	    @bufferTokens[n] = (token.nil? && size > 0) ? "\0" * size : token
+	    @bufferSizes[n] = size || (token.nil? ? 0 : token.length)
+	    @bufferTokens[n] = (token.nil? && size && size > 0) ? "\0" * (size+1) : token
 	  end
 	  
 	  def to_p
@@ -247,7 +247,7 @@ module Net; module SSH; module Kerberos; module SSPI; class GSSContext
     @state = { :handle => ctx, :result => result, :token => output.token, :stamp => ts }
     if result.value == 0
       @sizes = SecPkgSizes.new
-			result = SSPIResult.new(API::QuerySecurityPackageInfo.call(ctx.to_p, @sizes.to_p))
+			result = SSPIResult.new(API::QueryContextAttributes.call(ctx.to_p, SECPKG_ATTR_SIZES, @sizes.to_p))
 			@handle = @state[:handle]
     end
     @state[:token]
@@ -260,12 +260,12 @@ module Net; module SSH; module Kerberos; module SSPI; class GSSContext
   def get_mic(token=nil)
     buffers = SecurityBuffer.new 2
     buffers.set_buffer 0, SECBUFFER_DATA, token
-    buffers.set_buffer 1, SECBUFFER_TOKEN, nil, 12288 #@sizes.max_signature
+    buffers.set_buffer 1, SECBUFFER_TOKEN, nil, @sizes.max_signature
     @state[:result] = SSPIResult.new(API::MakeSignature.call(@handle.to_p, 0, buffers.to_p, 0))
     unless @state[:result].ok?
       raise GeneralError, "Error creating the signature: #{result}"
     end
-    return buffers.token(1)
+    return buffers.token(1).dup
   end
   
   def dispose()
