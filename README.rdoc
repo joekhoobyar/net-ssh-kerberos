@@ -1,6 +1,10 @@
 = net-ssh-kerberos
 
-Adds Kerberos support to Net::SSH
+Adds Kerberos support to Net::SSH.
+
+Windows support uses Microsoft SSPI for Kerberos integration.
+
+Kerberos support for UNIX and OS X coming soon.
 
 == Copyright
 
