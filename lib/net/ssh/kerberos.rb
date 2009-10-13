@@ -11,9 +11,8 @@ if RUBY_PLATFORM.include?('win') && ! RUBY_PLATFORM.include?('dar'); then
       raise e
     end
   end
-else
-  $stderr.puts "warning: Kerberos support for non-Windows systems is not yet implemented."
 end
+require 'net/ssh/kerberos/gss' unless defined?(Net::SSH::Kerberos::SSPI::Context)
 require 'net/ssh/authentication/methods/gssapi_with_mic'
 
 module Net

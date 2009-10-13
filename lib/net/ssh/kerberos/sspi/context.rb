@@ -1,6 +1,6 @@
 require 'net/ssh/kerberos/sspi/api'
 
-module Net; module SSH; module Kerberos; module SSPI; class GSSContext
+module Net; module SSH; module Kerberos; module SSPI; class Context
 
   class GeneralError < StandardError; end
 

@@ -16,7 +16,9 @@ module Net
 
           # Attempts to perform gssapi-with-mic Kerberos authentication
           def authenticate(next_service, username, password=nil)
-            sspi = nil
+            gss_klass = (defined?(Net::SSH::Kerberos::SSPI::Context) ?
+	                           Net::SSH::Kerberos::SSPI::Context : Net::SSH::Kerberos::GSS::Context)
+            gss = nil
             
             # Try to start gssapi-with-mic authentication.
 	          debug { "trying kerberos authentication" }
@@ -43,14 +45,14 @@ module Net
 	          end
 	          
 	          # Try to complete the handshake.
-	          sspi = Net::SSH::Kerberos::SSPI::GSSContext.new
-	          sspi.create username, hostname
+	          gss = gss_klass.new
+	          gss.create username, hostname
 			      debug { "gssapi-with-mic handshaking" }
-	          until sspi.established?
-	            token = sspi.init(token)
+	          until gss.established?
+	            token = gss.init(token)
 	            if token && token.length > 0
 					      send_message Net::SSH::Buffer.from(:byte, USERAUTH_GSSAPI_TOKEN, :string, token)
-	              unless sspi.established?
+	              unless gss.established?
 	                message = session.next_message
 				          case message.type
 				          when USERAUTH_GSSAPI_ERROR
@@ -72,7 +74,7 @@ module Net
 	          
 	          # Attempt the actual authentication.
 			      debug { "gssapi-with-mic authenticating" }
-					  mic = sspi.get_mic Net::SSH::Buffer.from(:string, session_id, :byte, USERAUTH_REQUEST, :string, username, 
+					  mic = gss.get_mic Net::SSH::Buffer.from(:string, session_id, :byte, USERAUTH_REQUEST, :string, username, 
 				                                             :string, next_service, :string, "gssapi-with-mic").to_s
             if mic.nil?
               info { "gssapi-with-mic failed (context#get_mic)" }
@@ -91,7 +93,7 @@ module Net
 	              raise Net::SSH::Exception, "unexpected server response to USERAUTH_REQUEST: #{message.type} (#{message.inspect})"
 	          end
           ensure
-			      sspi and sspi.dispose
+			      gss and gss.dispose
           end
 
           private

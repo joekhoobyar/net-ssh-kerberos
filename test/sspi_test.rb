@@ -4,7 +4,7 @@ include Win32::SSPI
 
 class SspiTest < Test::Unit::TestCase
 
-if defined? Net::SSH::Kerberos::SSPI::GSSContext
+if defined? Net::SSH::Kerberos::SSPI::Context
 
   def test_query_security_package_info
     pkg_info = SecPkgInfo.new
