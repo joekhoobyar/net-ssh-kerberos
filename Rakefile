@@ -12,6 +12,7 @@ EOTEXT
     gem.email = "joe@ankhcraft.com"
     gem.homepage = "http://github.com/joekhoobyar/net-ssh-kerberos"
     gem.authors = ["Joe Khoobyar"]
+    gem.rubyforge_project 'net-ssh-krb'
     gem.add_runtime_dependency(%q<net-ssh>, [">= 2.0"])
     gem.add_runtime_dependency(%q<rubysspi>, [">= 1.3"])
 

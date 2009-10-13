@@ -1,4 +1,6 @@
 *.sw?
+.buildpath
+.project
 .DS_Store
 coverage
 rdoc
