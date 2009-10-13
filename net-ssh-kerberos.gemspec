@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{net-ssh-kerberos}
-  s.version = "0.1.1"
+  s.version = "0.1.2"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Joe Khoobyar"]
@@ -22,13 +22,17 @@ Gem::Specification.new do |s|
     "lib/net/ssh/authentication/methods/gssapi_with_mic.rb",
     "lib/net/ssh/kerberos.rb",
     "lib/net/ssh/kerberos/constants.rb",
+    "lib/net/ssh/kerberos/gss.rb",
+    "lib/net/ssh/kerberos/gss/api.rb",
+    "lib/net/ssh/kerberos/gss/context.rb",
     "lib/net/ssh/kerberos/kex.rb",
     "lib/net/ssh/kerberos/kex/krb5_diffie_hellman_group1_sha1.rb",
     "lib/net/ssh/kerberos/kex/krb5_diffie_hellman_group_exchange_sha1.rb",
     "lib/net/ssh/kerberos/sspi.rb",
     "lib/net/ssh/kerberos/sspi/api.rb",
-    "lib/net/ssh/kerberos/sspi/gss_context.rb",
+    "lib/net/ssh/kerberos/sspi/context.rb",
     "test/net_ssh_kerberos_test.rb",
+    "test/sspi_context_test.rb",
     "test/sspi_test.rb",
     "test/test_helper.rb"
   ]
@@ -40,6 +44,7 @@ Gem::Specification.new do |s|
   s.summary = %q{Add Kerberos support to Net::SSH}
   s.test_files = [
     "test/net_ssh_kerberos_test.rb",
+    "test/sspi_context_test.rb",
     "test/sspi_test.rb",
     "test/test_helper.rb"
   ]
