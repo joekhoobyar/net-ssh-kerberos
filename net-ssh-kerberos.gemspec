@@ -2,11 +2,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{net-ssh-kerberos}
-  s.version = "0.0.0"
+  s.version = "0.1.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Joe Khoobyar"]
-  s.date = %q{2009-04-30}
+  s.date = %q{2009-10-13}
   s.description = %q{Adds support for Microsoft Kerberos (SSPI) with the Net:SSH gem.
 }
   s.email = %q{joe@ankhcraft.com}
@@ -18,15 +18,22 @@ Gem::Specification.new do |s|
     "LICENSE",
     "README.rdoc",
     "Rakefile",
-    "lib/net_ssh_kerberos.rb",
+    "VERSION.yml",
+    "lib/net/ssh/authentication/methods/gssapi_with_mic.rb",
+    "lib/net/ssh/kerberos.rb",
+    "lib/net/ssh/kerberos/constants.rb",
+    "lib/net/ssh/kerberos/kex.rb",
+    "lib/net/ssh/kerberos/kex/krb5_diffie_hellman_group1_sha1.rb",
+    "lib/net/ssh/kerberos/kex/krb5_diffie_hellman_group_exchange_sha1.rb",
+    "lib/net/ssh/kerberos/sspi.rb",
+    "lib/net/ssh/kerberos/sspi/api.rb",
     "test/net_ssh_kerberos_test.rb",
     "test/test_helper.rb"
   ]
-  s.has_rdoc = true
   s.homepage = %q{http://github.com/joekhoobyar/net-ssh-kerberos}
   s.rdoc_options = ["--charset=UTF-8"]
   s.require_paths = ["lib"]
-  s.rubygems_version = %q{1.3.2}
+  s.rubygems_version = %q{1.3.4}
   s.summary = %q{Add Kerberos support to Net::SSH}
   s.test_files = [
     "test/net_ssh_kerberos_test.rb",
