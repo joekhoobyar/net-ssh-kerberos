@@ -12,7 +12,7 @@ if RUBY_PLATFORM.include?('win') && ! RUBY_PLATFORM.include?('dar'); then
     end
   end
 end
-require 'net/ssh/kerberos/gss' unless defined?(Net::SSH::Kerberos::SSPI::Context)
+require 'net/ssh/kerberos/gss'
 require 'net/ssh/authentication/methods/gssapi_with_mic'
 
 module Net
