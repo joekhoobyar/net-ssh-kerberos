@@ -60,14 +60,14 @@ module Net; module SSH; module Kerberos; module GSS;
 
     GssOIDRef = struct2 [ "GssOID *ptr" ] do
       def oid
-        @oid = GssOID.new(ptr) if @oid.nil? or @oid.to_ptr != ptr
+        @oid = GssOID.new(ptr) if (@oid.nil? or @oid.to_ptr != ptr) and ! ptr.nil?
         @oid
       end
     end
 
     GssOIDSetRef = struct2 [ "GssOIDSet *ptr" ] do
       def oidset
-        @oidset = GssOIDSet.new(ptr) if @oidset.nil? or @oidset.to_ptr != ptr
+        @oidset = GssOIDSet.new(ptr) if (@oidset.nil? or @oidset.to_ptr != ptr) and ! ptr.nil?
         @oidset
       end
     end
