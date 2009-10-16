@@ -10,7 +10,7 @@ module Net; module SSH; module Kerberos; module GSS;
     if RUBY_PLATFORM =~ /cygwin/
       dlload('cyggss-1.dll')
     else
-      dlload('/usr/share/centrifydc/kerberos/lib/libgssapi_krb5.so')
+      dlload('libgssapi_krb5.so')
     end 
 
     typealias 'OM_uint32', 'unsigned int'

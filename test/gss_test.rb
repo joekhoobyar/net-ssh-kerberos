@@ -5,19 +5,9 @@ class GssTest < Test::Unit::TestCase
   include Net::SSH::Kerberos::GSS
 
   def test_default_cred
-    principal = nil
-    req_mechs = nil
-    #mechs = API::GssOID.malloc
-    #mechs.length = 9
-    #mechs.elements = "\x2a\x86\x48\x86\xf7\x12\x01\x02\x02"
-    #req_mechs = API::GssOIDSet.malloc
-    #req_mechs.count = 1
-    #req_mechs.elements = mechs.to_ptr.ref
     minor_status = "\0" * 4
     creds = "\0" * 4
-    actual_mechs = "\0" * 4
-    
-    result = API.gss_acquire_cred minor_status, principal, 60, req_mechs, GSS_C_INITIATE, creds, actual_mechs, nil
+    result = API.gss_acquire_cred minor_status, nil, 60, nil, GSS_C_INITIATE, creds, nil, nil
     assert_equal 0, result, "gss_acquire_cred failed: 0x#{result.to_s(16)}"
     assert_equal GSS_C_NO_CREDENTIAL, creds.unpack("P")[0], "Should acquire default credentials"
   end
@@ -28,8 +18,8 @@ class GssTest < Test::Unit::TestCase
     buffer.value = target_name
     buffer.length = target_name.length
     mechs = API::GssOID.malloc
-    mechs.length = 9
-    mechs.elements = "\x2a\x86\x48\x86\xf7\x12\x01\x02\x02"
+    mechs.elements = GSS_C_NT_HOSTBASED_SERVICE
+    mechs.length = mechs.elements.length
     minor_status = "\0" * 4
     output = "\0" * 4
     result = API.gss_import_name minor_status, buffer, mechs, output
