@@ -31,10 +31,13 @@ module Net; module SSH; module Kerberos; module GSS;
     #typealias 'gss_name_t', 'void *'
     #GssCtxId = struct [ "char *handle" ]
     #GssCredId = struct [ "char *handle" ]
-    #GssName = struct [ "char *handle" ]
     typealias 'gss_ctx_id_t', 'void *'
     typealias 'gss_cred_id_t', 'void *'
     typealias 'gss_name_t', 'void *'
+    GssNameRef = struct [ "gss_name_t handle" ]
+    GssContextRef = struct [ "gss_ctx_id_t handle" ]
+    GssCredRef = struct [ "gss_cred_id_t handle" ]
+    GssMinorStatusRef = struct [ "OM_uint32 code" ]
 
     typealias 'gss_qop_t', 'OM_uint32'
     typealias 'gss_cred_usage_t', 'int'
@@ -63,9 +66,11 @@ module Net; module SSH; module Kerberos; module GSS;
 
   GSS_C_NO_NAME         = nil
   GSS_C_NO_BUFFER       = nil
+  GSS_C_NO_OID          = nil
   GSS_C_NO_OID_SET      = nil
   GSS_C_NO_CONTEXT      = nil
   GSS_C_NO_CREDENTIAL   = nil
+  GSS_C_NO_CHANNEL_BINDINGS = nil
 
   #--
   # GSSAPI / Kerberos 5  OID(s)

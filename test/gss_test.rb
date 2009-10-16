@@ -13,30 +13,30 @@ class GssTest < Test::Unit::TestCase
   end
   
   def test_init_sec_context
-    target_name = 'host@'+Socket.gethostbyname('localhost')[0]
+    target_name = 'host/usbillingstg.corp.tnsi.com' #'host@'+Socket.gethostbyname('localhost')[0]
     buffer = API::GssBuffer.malloc
     buffer.value = target_name
     buffer.length = target_name.length
     mechs = API::GssOID.malloc
     mechs.elements = GSS_C_NT_HOSTBASED_SERVICE
     mechs.length = GSS_C_NT_HOSTBASED_SERVICE.length
-    minor_status = "\0" * 4
-    output = "\0" * 4
-    result = API.gss_import_name minor_status, buffer, mechs, output
+    minor_status = API::GssMinorStatusRef.malloc
+    target_name = API::GssNameRef.malloc
+    result = API.gss_import_name minor_status, buffer, mechs, target_name
     assert_equal result, 0, "gss_import_name failed: 0x#{result.to_s(16)}"
-    assert_not_equal output, "\0"*4, "Should import the name"
-    output = API::GssOID.new(output.to_ptr)
-    target_name = output.value[0,output.length]
+    assert_equal minor_status.code, 0, "gss_import_name failed: minor status 0x#{minor_status.code.to_s(16)}"
+    assert_not_equal target_name.handle, GSS_C_NO_NAME, "Should import the name"
 
-    minor_status = "\0" * 4
-    ctx = "\0" * 4
     actual_mech = "\0" * 4
-    buffer = "\0" * 4
-    
+    buffer.value = nil
+    buffer.length = 0
     result = API.gss_init_sec_context minor_status, GSS_C_NO_CREDENTIAL,
-                ctx, target_name, GSS_C_NO_OID,
+                GSS_C_NO_CONTEXT, target_name.handle, GSS_C_NO_OID,
                 GSS_C_DELEG_FLAG | GSS_C_MUTUAL_FLAG | GSS_C_INTEG_FLAG, 60,
-                nil, GSS_C_NO_BUFFER, actual_mech, buffer, nil, nil
+                GSS_C_NO_CHANNEL_BINDINGS, GSS_C_NO_BUFFER, actual_mech.to_ptr.ref, buffer, nil, nil
+    assert_equal result, 0, "gss_init_sec_context failed: 0x#{result.to_s(16)}"
+    assert_equal minor_status.code, 0, "gss_init_sec_context failed: minor status 0x#{minor_status.code.to_s(16)}"
+
   end
 end
 
