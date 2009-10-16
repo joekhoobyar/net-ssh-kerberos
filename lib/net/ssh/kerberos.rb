@@ -1,6 +1,7 @@
 require 'net/ssh'
 require 'net/ssh/kerberos/constants'
 #require 'net/ssh/kerberos/kex'
+
 if RUBY_PLATFORM.include?('win') && ! RUBY_PLATFORM.include?('dar'); then
   begin
     require 'net/ssh/kerberos/sspi'

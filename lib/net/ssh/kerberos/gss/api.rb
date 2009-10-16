@@ -72,6 +72,30 @@ module Net; module SSH; module Kerberos; module GSS;
       end
     end
 
+    class GssResult < Struct.new(:major, :minor, :status, :calling_error, :routine_error)
+      def initialize(result, minor=nil)
+        major = (result >> 16) & 0x0000ffff
+        minor = minor.value if minor.respond_to? :value
+        status = result & 0x0000ffff
+        calling_error = (major >> 8) & 0x00ff
+        routine_error = major & 0x00ff
+      end
+
+      def ok?; major.zero? end
+
+      def complete?; status.zero? end
+
+      def incomplete?; false end
+
+      def failure?; major.nonzero? end
+
+      def temporary_failure?
+        routine_error==GSS_S_CREDENTIALS_EXPIRED ||
+          routine_error==GSS_S_CONTEXT_EXPIRED ||
+          routine_error==GSS_S_UNAVAILABLE
+      end
+    end
+
     extern "OM_uint32 gss_acquire_cred (OM_uint32 *, gss_name_t, OM_uint32, gss_OID_set, gss_cred_usage_t, gss_cred_id_t *, gss_OID_set *, OM_uint32 *)"
     extern "OM_uint32 gss_inquire_cred (OM_uint32 *, gss_cred_id_t, gss_name_t *, OM_uint32 *, gss_cred_usage_t *, gss_OID_set *)"
     extern "OM_uint32 gss_release_cred (OM_uint32 *, gss_cred_id_t *)"
@@ -82,6 +106,7 @@ module Net; module SSH; module Kerberos; module GSS;
     extern "OM_uint32 gss_release_oid_set (OM_uint32 *, gss_OID_set *)"
     extern "OM_uint32 gss_init_sec_context (OM_uint32 *, gss_cred_id_t, gss_ctx_id_t *, gss_name_t, gss_OID, OM_uint32, OM_uint32, void *, gss_buffer_t, gss_OID *, gss_buffer_t, OM_uint32 *, OM_uint32 *)"
     extern "OM_uint32 gss_delete_sec_context (OM_uint32 *, gss_ctx_id_t *, gss_buffer_t)"
+    extern "OM_uint32 gss_get_mic(OM_uint32 *, gss_ctx_id_t, gss_qop_t, gss_buffer_t, gss_buffer_t)"
 
     if @LIBS.empty? and ! defined? Net::SSH::Kerberos::SSPI::Context
       $stderr.puts "error: Failed to a find a supported GSS implementation on this platform (#{RUBY_PLATFORM})"
