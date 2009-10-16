@@ -8,8 +8,8 @@ class GssTest < Test::Unit::TestCase
     minor_status = "\0" * 4
     creds = "\0" * 4
     result = API.gss_acquire_cred minor_status, nil, 60, nil, GSS_C_INITIATE, creds, nil, nil
-    assert_equal 0, result, "gss_acquire_cred failed: 0x#{result.to_s(16)}"
-    assert_equal GSS_C_NO_CREDENTIAL, creds.unpack("P")[0], "Should acquire default credentials"
+    assert_equal result, 0, "gss_acquire_cred failed: 0x#{result.to_s(16)}"
+    assert_equal creds.unpack("P")[0], GSS_C_NO_CREDENTIAL, "Should acquire default credentials"
   end
   
   def test_init_sec_context
@@ -19,12 +19,12 @@ class GssTest < Test::Unit::TestCase
     buffer.length = target_name.length
     mechs = API::GssOID.malloc
     mechs.elements = GSS_C_NT_HOSTBASED_SERVICE
-    mechs.length = mechs.elements.length
+    mechs.length = GSS_C_NT_HOSTBASED_SERVICE.length
     minor_status = "\0" * 4
     output = "\0" * 4
     result = API.gss_import_name minor_status, buffer, mechs, output
-    assert_equal 0, result, "gss_import_name failed: 0x#{result.to_s(16)}"
-    assert_not_equal "\0"*4, output, "Should import the name"
+    assert_equal result, 0, "gss_import_name failed: 0x#{result.to_s(16)}"
+    assert_not_equal output, "\0"*4, "Should import the name"
     output = API::GssOID.new(output.to_ptr)
     target_name = output.value[0,output.length]
 

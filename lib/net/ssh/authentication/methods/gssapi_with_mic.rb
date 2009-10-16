@@ -12,7 +12,6 @@ module Net
           
 	        # OID 1.2.840.113554.1.2.2 - Kerberos 5 (RFC 1964)
           SUPPORTED_OID = "\x06\x09\x2a\x86\x48\x86\xf7\x12\x01\x02\x02"
-                          #[ 0x6, 0x9, 0x2a, 0x86, 0x48, 0x86, 0xf7, 0x12, 0x1, 0x2, 0x2 ].pack("C*")
 
           # Attempts to perform gssapi-with-mic Kerberos authentication
           def authenticate(next_service, username, password=nil)
