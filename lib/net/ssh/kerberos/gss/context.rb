@@ -8,7 +8,7 @@ module Net; module SSH; module Kerberos; module GSS; class Context < Common::Con
   def init(token=nil)
     minor_status = API::OM_uint32Ref.malloc
     buffer = API::GssBuffer.malloc
-    buffer.value = @server_krb_name
+    buffer.value = @server_krb_name.sub('host/','host@')
     buffer.length = @server_krb_name.length
     mech = API::GssOID.malloc
     mech.elements = GSS_C_NT_HOSTBASED_SERVICE
@@ -17,16 +17,18 @@ module Net; module SSH; module Kerberos; module GSS; class Context < Common::Con
     result = GssResult.new API.gss_import_name(minor_status, buffer, mech, target_name), minor_status
     result.failure? and raise GeneralError, "Error importing name: #{result} #{input.inspect}"
     begin
-      #buffer = API::GssBuffer.malloc
-      #result = API.gss_display_name minor_status, target_name.handle, buffer, nil
-      #$stderr.puts "target: #{buffer.value} (OID: #{mech.length}, #{mech.to_hex})"
-      #call_and_assert :gss_release_buffer, buffer
+      result = API.gss_display_name minor_status, target_name.handle, buffer, nil
+      API.gss_release_buffer minor_status, buffer
 
       mech.elements = GSS_KRB5_MECH
       mech.length = GSS_KRB5_MECH.length
-      actual_mech = nil #API::GssOIDRef.malloc
-      context = API::GssContextRef.malloc
-      context.handle = GSS_C_NO_CONTEXT
+      actual_mech = API::GssOIDRef.malloc
+      if @state.nil? or @state.handle.nil? or @state.handle.handle.nil?
+        context = API::GssContextRef.malloc
+        context.handle = GSS_C_NO_CONTEXT
+      else
+        context = @state.handle
+      end
       buffer.value = nil
       buffer.length = 0
       if token.nil?
@@ -36,17 +38,17 @@ module Net; module SSH; module Kerberos; module GSS; class Context < Common::Con
         input.value = target_name
         input.length = target_name.length
       end
-      result = GssResult.new API.gss_init_sec_context(minor_status, GSS_C_NO_CREDENTIAL, context, target_name.handle, mech,
+      result = GssResult.new API.gss_init_sec_context(minor_status, @credentials, context, target_name.handle, mech,
                                                       GSS_C_DELEG_FLAG | GSS_C_MUTUAL_FLAG | GSS_C_INTEG_FLAG, 60,
                                                       GSS_C_NO_CHANNEL_BINDINGS, input, actual_mech, buffer, nil, nil),
                               minor_status
-      result.failure? and input and raise GeneralError, "Error initializing security context: #{result} #{input.inspect}"
+      result.failure? and raise GeneralError, "Error initializing security context: #{result} #{input.inspect}"
       begin
-        @state = State.new(context, result, output.value.to_s.dup, nil)
+        @state = State.new(context, result, buffer.value.to_s.dup, nil)
         @handle = @state.handle if result.complete?
         return @state.token
       ensure
-        API.gss_release_buffer minor_status, output
+        API.gss_release_buffer minor_status, buffer
       end
     ensure
       API.gss_release_name minor_status, target_name
@@ -61,13 +63,17 @@ module Net; module SSH; module Kerberos; module GSS; class Context < Common::Con
     output = API::GssBuffer.malloc
     @state.result = GssResult.new API.gss_get_mic(minor_status, @handle.handle, GSS_C_QOP_DEFAULT, input, output), minor_status
     unless @state.result.complete? and (token = output.value)
-      raise GeneralError, "Error creating the signature: #{result}"
+      raise GeneralError, "Error creating the signature: #{@state.result}"
     end
 
     begin return token.dup
     ensure API.gss_release_buffer minor_status, output
     end
   end
+
+protected
+
+  def state; @state end
   
 private
   
@@ -83,6 +89,7 @@ private
       begin
         buffer = API::GssBuffer.malloc
         result = GssResult.new API.gss_display_name(minor_status, name.handle, buffer, nil), minor_status
+        result.ok? or raise GeneralError, "Error getting display name: #{result}"
         begin return [creds, buffer.value.to_s.dup]
         ensure API.gss_release_buffer API::OM_uint32Ref.malloc, buffer
         end

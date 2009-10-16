@@ -1,7 +1,5 @@
 require File.join(File.dirname(__FILE__), 'test_helper.rb')
 
-include Win32::SSPI
-
 class SspiContextTest < Test::Unit::TestCase
 
 if defined? Net::SSH::Kerberos::SSPI::Context
@@ -21,6 +19,8 @@ if defined? Net::SSH::Kerberos::SSPI::Context
 
 else
   $stderr.puts "Skipping SSPI tests on this platform: Windows SSPI was not loaded."
+
+  def test_nothing; assert true end
 end
 
 end

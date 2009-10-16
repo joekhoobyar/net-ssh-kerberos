@@ -24,7 +24,7 @@ class GssTest < Test::Unit::TestCase
         assert_not_equal 0, buffer.value.to_i, "Should provide the display name"
         begin
           assert_not_equal 0, oid.ptr.to_i, "Should provide the supported oid"
-          #$stderr.puts "credentials: #{buffer.value} (OID: #{oid.oid.length}, #{oid.oid.to_hex})"
+          #$stderr.puts "credentials: #{creds.handle.to_i} #{buffer.value} (OID: #{oid.oid.length}, #{oid.oid.to_hex})"
         ensure
           result = API.gss_release_buffer API::OM_uint32Ref.malloc, buffer
         end

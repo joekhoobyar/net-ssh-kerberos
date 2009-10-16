@@ -132,6 +132,7 @@ module Net; module SSH; module Kerberos; module GSS;
   GSS_C_NO_CONTEXT      = nil
   GSS_C_NO_CREDENTIAL   = nil
   GSS_C_NO_CHANNEL_BINDINGS = nil
+  GSS_C_QOP_DEFAULT     = 0
 
   GSS_S_COMPLETE        = 0
   GSS_S_CONTINUE_NEEDED = 1
