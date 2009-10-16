@@ -3,6 +3,8 @@ require 'net/ssh/kerberos/gss/api'
 
 module Net; module SSH; module Kerberos; module GSS; class Context < Common::Context
 
+  GssResult = API::GssResult
+
   def init(token=nil)
     minor_status = API::OM_uint32Ref.malloc
     buffer = API::GssBuffer.malloc

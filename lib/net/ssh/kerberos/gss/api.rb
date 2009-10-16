@@ -74,11 +74,11 @@ module Net; module SSH; module Kerberos; module GSS;
 
     class GssResult < Struct.new(:major, :minor, :status, :calling_error, :routine_error)
       def initialize(result, minor=nil)
-        major = (result >> 16) & 0x0000ffff
-        minor = minor.value if minor.respond_to? :value
-        status = result & 0x0000ffff
-        calling_error = (major >> 8) & 0x00ff
-        routine_error = major & 0x00ff
+        self.major = (result >> 16) & 0x0000ffff
+        self.minor = minor.value if minor.respond_to? :value
+        self.status = result & 0x0000ffff
+        self.calling_error = (major >> 8) & 0x00ff
+        self.routine_error = major & 0x00ff
       end
 
       def ok?; major.zero? end

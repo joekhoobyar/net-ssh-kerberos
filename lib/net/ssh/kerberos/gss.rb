@@ -1,5 +1,5 @@
 if ! defined? Net::SSH::Kerberos::SSPI::Context
-  $stderr.puts "warning: Kerberos support using GSSAPI is not yet completed."
+  $stderr.puts "warning: Kerberos support using GSSAPI is not fully tested."
 end
 
 require 'net/ssh/kerberos/gss/api'
