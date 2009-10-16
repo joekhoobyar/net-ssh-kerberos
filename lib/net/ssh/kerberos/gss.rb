@@ -1,4 +1,6 @@
-$stderr.puts "warning: Kerberos support for non-Windows systems is not yet implemented."
+if ! defined? Net::SSH::Kerberos::SSPI::Context
+  $stderr.puts "warning: Kerberos support using GSSAPI is not yet completed."
+end
 
 require 'net/ssh/kerberos/gss/api'
 require 'net/ssh/kerberos/gss/context'
