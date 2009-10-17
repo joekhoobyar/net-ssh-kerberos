@@ -13,13 +13,12 @@ module Net; module SSH; module Kerberos; module Common; class Context
   end
 
   def create(user, host)
-    dispose if @credentials or @handle
+    dispose if @credentials or @target or @handle
+
     creds, name = acquire_current_credentials
     begin
       @cred_name = name.to_s.sub(/^[^\\\/]*[\\\/]/, '')
       @cred_krb_name = @cred_name.gsub('@', '/');
-      @server_name = Socket.gethostbyname(host)[0]
-      @server_krb_name = "host/" + @server_name
 
       z = (user.include?('@') ? user.gsub('@','/') : user+'/')
       unless z.downcase == @cred_krb_name[0,z.length].downcase
@@ -27,8 +26,16 @@ module Net; module SSH; module Kerberos; module Common; class Context
       end
       @credentials = creds
     ensure
-      @credentials or release_credentials creds
+      if @credentials.nil?
+        release_credentials creds
+        @cred_name = @cred_krb_name = nil
+      end
     end
+
+    @server_name = Socket.gethostbyname(host)[0]
+    @target, @server_krb_name = import_server_name host
+
+    true
   end
 
   def credentials?; ! @credentials.nil? end
@@ -40,18 +47,25 @@ module Net; module SSH; module Kerberos; module Common; class Context
   def get_mic(token=nil); raise NotImplementedError, "subclasses must implement this method" end
   
   def dispose
-    release_credentials @credentials
-    delete_context @handle
+    @handle and delete_context @handle
+    @credentials and release_credentials @credentials
+    @target and release_server_name @target
   ensure
-    @handle = @credentials = nil
+    @credentials = @cred_name = @cred_krb_name = nil
+    @target = @server_name = @server_krb_name = nil
+    @handle = @state = nil
   end 
 
 private
 
   def acquire_current_credentials; raise NotImplementedError, "subclasses must implement this method" end
 
-  def release_credentials; raise NotImplementedError, "subclasses must implement this method" end
+  def release_credentials(creds); raise NotImplementedError, "subclasses must implement this method" end
 
-  def delete_context; raise NotImplementedError, "subclasses must implement this method" end
+  def import_server_name(host); raise NotImplementedError, "subclasses must implement this method" end
+
+  def release_server_name(target); raise NotImplementedError, "subclasses must implement this method" end
+
+  def delete_context(handle); raise NotImplementedError, "subclasses must implement this method" end
 
 end; end; end; end; end

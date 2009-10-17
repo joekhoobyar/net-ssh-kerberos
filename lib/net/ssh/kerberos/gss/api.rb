@@ -94,6 +94,8 @@ module Net; module SSH; module Kerberos; module GSS;
           routine_error==GSS_S_CONTEXT_EXPIRED ||
           routine_error==GSS_S_UNAVAILABLE
       end
+
+      def to_s; "%#4.4x%4.4x [%#8.8x]" % [major, status, minor] end
     end
 
     extern "OM_uint32 gss_acquire_cred (OM_uint32 *, gss_name_t, OM_uint32, gss_OID_set, gss_cred_usage_t, gss_cred_id_t *, gss_OID_set *, OM_uint32 *)"

@@ -62,6 +62,13 @@ private
     creds.nil? or API::FreeCredentialsHandle creds
   end
 
+  def import_server_name(host)
+    ['host/'+host, 'host/'+host]
+  end
+
+  def release_server_name(target)
+  end
+
   def delete_context(handle)
     handle.nil? or API::DeleteSecurityContext handle
   end
