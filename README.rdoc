@@ -2,9 +2,21 @@
 
 Adds Kerberos support to Net::SSH.
 
-Windows support uses Microsoft SSPI for Kerberos integration.
+== How to use with Capistrano
 
-Kerberos support for UNIX and OS X coming soon.
+Add the following lines to the top of your Capfile
+
+
+  require 'net/ssh/kerberos'
+  set :ssh_options, { :auth_methods => %w(gssapi-with-mic publickey hostbased password keyboard-interactive) }
+
+
+== Supported Platforms
+
+- UNIX systems use the GSSAPI for Kerberos 5 integration. (tested on RedHat Linux)
+- Windows systems use Microsoft SSPI for Kerberos 5 integration. (tested on Windows XP with a Centrify DC)
+- Supports enterprise-level Kerberos-based security (testd with Centrify DC)
+- Cross-forest authentication is supported (tested with Centrify DC in a mixed Windows/Linux environment)
 
 == Copyright
 
