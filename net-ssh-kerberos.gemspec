@@ -2,11 +2,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{net-ssh-kerberos}
-  s.version = "0.1.2"
+  s.version = "0.1.3"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Joe Khoobyar"]
-  s.date = %q{2009-10-13}
+  s.date = %q{2009-10-16}
   s.description = %q{Adds support for Microsoft Kerberos (SSPI) with the Net:SSH gem.
 }
   s.email = %q{joe@ankhcraft.com}
@@ -21,6 +21,7 @@ Gem::Specification.new do |s|
     "VERSION.yml",
     "lib/net/ssh/authentication/methods/gssapi_with_mic.rb",
     "lib/net/ssh/kerberos.rb",
+    "lib/net/ssh/kerberos/common/context.rb",
     "lib/net/ssh/kerberos/constants.rb",
     "lib/net/ssh/kerberos/gss.rb",
     "lib/net/ssh/kerberos/gss/api.rb",
@@ -31,6 +32,8 @@ Gem::Specification.new do |s|
     "lib/net/ssh/kerberos/sspi.rb",
     "lib/net/ssh/kerberos/sspi/api.rb",
     "lib/net/ssh/kerberos/sspi/context.rb",
+    "test/gss_context_test.rb",
+    "test/gss_test.rb",
     "test/net_ssh_kerberos_test.rb",
     "test/sspi_context_test.rb",
     "test/sspi_test.rb",
@@ -43,6 +46,8 @@ Gem::Specification.new do |s|
   s.rubygems_version = %q{1.3.4}
   s.summary = %q{Add Kerberos support to Net::SSH}
   s.test_files = [
+    "test/gss_context_test.rb",
+    "test/gss_test.rb",
     "test/net_ssh_kerberos_test.rb",
     "test/sspi_context_test.rb",
     "test/sspi_test.rb",
