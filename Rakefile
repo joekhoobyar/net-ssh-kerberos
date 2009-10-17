@@ -7,7 +7,7 @@ begin
     gem.name = "net-ssh-kerberos"
     gem.summary = %Q{Add Kerberos support to Net::SSH}
     gem.description = <<-EOTEXT
-Adds support for Microsoft Kerberos (SSPI) with the Net:SSH gem.
+Extends Net::SSH by adding Kerberos authentication capability for password-less logins on multiple platforms.
 EOTEXT
     gem.email = "joe@ankhcraft.com"
     gem.homepage = "http://github.com/joekhoobyar/net-ssh-kerberos"
@@ -42,6 +42,33 @@ rescue LoadError
   end
 end
 
+# These are new tasks
+begin
+  require 'rake/contrib/sshpublisher'
+  namespace :rubyforge do
+
+    desc "Release gem and RDoc documentation to RubyForge"
+    task :release => ["rubyforge:release:gem", "rubyforge:release:docs"]
+
+    namespace :release do
+      desc "Publish RDoc to RubyForge."
+      task :docs => [:rdoc] do
+        config = YAML.load(
+            File.read(File.expand_path('~/.rubyforge/user-config.yml'))
+        )
+
+        host = "#{config['username']}@rubyforge.org"
+        remote_dir = "/var/www/gforge-projects/net-ssh-krb/"
+        local_dir = 'doc'
+
+        Rake::SshDirPublisher.new(host, remote_dir, local_dir).upload
+      end
+    end
+  end
+rescue LoadError
+  puts "Rake SshDirPublisher is unavailable or your rubyforge environment is not configured."
+end
+
 
 task :default => :test
 
@@ -53,9 +80,12 @@ Rake::RDocTask.new do |rdoc|
   else
     version = ""
   end
+  rdoc.options << '--line-numbers' << '--inline-source' <<
+    '--main' << 'README.rdoc' <<
+    '--charset' << 'utf-8'
 
-  rdoc.rdoc_dir = 'rdoc'
-  rdoc.title = "Net-ssh-kerberos #{version}"
+  rdoc.rdoc_dir = 'doc'
+  rdoc.title = "Net::SSH::Kerberos #{version}"
   rdoc.rdoc_files.include('README*')
   rdoc.rdoc_files.include('lib/**/*.rb')
 end
