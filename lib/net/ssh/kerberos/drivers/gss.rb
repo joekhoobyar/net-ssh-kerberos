@@ -2,11 +2,14 @@ require 'dl/import'
 require 'dl/struct'
 
 require 'net/ssh/errors'
+require 'net/ssh/kerberos/constants'
 require 'net/ssh/kerberos/common/context'
 
 module Net; module SSH; module Kerberos; module Drivers;
-  
+
   module GSS
+
+    include Net::SSH::Kerberos::Constants
 	
 	  GSS_C_INITIATE = 1
 	
@@ -36,17 +39,6 @@ module Net; module SSH; module Kerberos; module Drivers;
 	  GSS_S_UNSEQ_TOKEN     = 8
 	  GSS_S_GAP_TOKEN       = 16
 	
-	  # GSSAPI / Kerberos 5 OID(s)
-	  GSS_C_NT_PRINCIPAL = "\x2a\x86\x48\x86\xf7\x12\x01\x02\x01\x01"
-	  GSS_C_NT_MACHINE_UID_NAME = "\x2a\x86\x48\x86\xf7\x12\x01\x02\x01\x02"
-	  GSS_C_NT_STRING_UID_NAME = "\x2a\x86\x48\x86\xf7\x12\x01\x02\x01\x03"
-	  GSS_C_NT_HOSTBASED_SERVICE = "\x2a\x86\x48\x86\xf7\x12\x01\x02\x01\x04"
-	  GSS_C_NT_ANONYMOUS = "\x2b\x06\01\x05\x06\x03"
-	  GSS_C_NT_EXPORT_NAME = "\x2b\x06\01\x05\x06\x04"
-	
-	  # GSSAPI / Kerberos 5  Deprecated / Proprietary OID(s)
-	  GSS_C_NT_HOSTBASED_SERVICE_X = "\x2b\x06\x01\x05\x06\x02"
-
 	  module API
 	    extend DL::Importable
 	    include DLExtensions
@@ -148,5 +140,18 @@ EOCODE
 #	      $stderr.puts "error: Failed to a find a supported GSS implementation on this platform (#{RUBY_PLATFORM})"
 #	    end
 	  end
+
+	  # GSSAPI / Kerberos 5 OID(s)
+	  GSS_C_NT_PRINCIPAL = API::GssOID.new([10, "\x2a\x86\x48\x86\xf7\x12\x01\x02\x01\x01"].pack('LP10').to_ptr)
+	  GSS_C_NT_MACHINE_UID_NAME = API::GssOID.new([10, "\x2a\x86\x48\x86\xf7\x12\x01\x02\x01\x02"].pack('LP10').to_ptr)
+	  GSS_C_NT_STRING_UID_NAME = API::GssOID.new([10, "\x2a\x86\x48\x86\xf7\x12\x01\x02\x01\x03"].pack('LP10').to_ptr)
+	  GSS_C_NT_HOSTBASED_SERVICE = API::GssOID.new([10, "\x2a\x86\x48\x86\xf7\x12\x01\x02\x01\x04"].pack('LP10').to_ptr)
+	  GSS_C_NT_ANONYMOUS = API::GssOID.new([6, "\x2b\x06\x01\x05\x06\x03"].pack('LP6').to_ptr)
+	  GSS_C_NT_EXPORT_NAME = API::GssOID.new([6, "\x2b\x06\x01\x05\x06\x04"].pack('LP6').to_ptr)
+	  GSS_C_KRB5 = API::GssOID.new([GSS_KRB5_MECH.length, GSS_KRB5_MECH].pack("LP#{GSS_KRB5_MECH.length}").to_ptr)
+	
+	  # GSSAPI / Kerberos 5  Deprecated / Proprietary OID(s)
+	  GSS_C_NT_HOSTBASED_SERVICE_X = API::GssOID.new([6, "\x2b\x06\x01\x05\x06\x02"].pack('LP6').to_ptr)
+
 	end
 end; end; end; end
