@@ -68,7 +68,9 @@ module Net; module SSH; module Kerberos; module Drivers
       typealias "PSecHandle", "P"
       typealias "PCredHandle", "PSecHandle"
       typealias "PCtxtHandle", "PSecHandle"
-      SecBuffer = struct [ "ULONG length", "ULONG type", "PCharBuffer data" ]
+      SecBuffer = struct2 [ "ULONG length", "ULONG type", "PCharBuffer data" ] do
+        def to_s; data.to_s(length) end
+      end
       typealias "PSecBuffer", "P", nil, nil, "P", PTR_ENC, PTR_DEC(SecBuffer)
       SecBufferDesc = struct2 [ "ULONG version", "ULONG count", "PSecBuffer buffers" ] do
         def buffer(n) SecBuffer.new(@ptr[:buffers] + SecBuffer.size * n) end
@@ -123,11 +125,11 @@ module Net; module SSH; module Kerberos; module Drivers
 				                        'PSecBufferDesc, ULONG_REF, PTimeStamp)'
       extern 'SECURITY_STATUS DeleteSecurityContext(PCtxtHandle)'
       
-      def self.createBuffers(types,data)
+      def SecBuffer.createArray(types,data)
         buffs, types, data = [], Array(types), Array(data)
         ptr = DL::malloc(API::SecBuffer.size * types.length)
         0.upto(types.length - 1) do |n|
-          buff = API::SecBuffer.new(ptr + API::SecBufer.size * n)
+          buff = API::SecBuffer.new(ptr + n*API::SecBuffer.size)
           buff.type = types[n]
           n = data[n]
           buff.data = Fixnum===n ? "\0" * n : n
@@ -137,25 +139,21 @@ module Net; module SSH; module Kerberos; module Drivers
         buffs
       end
       
-      def self.createTokenBufferDesc(token)
+      def SecBufferDesc.create(token)
         desc = API::SecBufferDesc.malloc
         desc.version = 0
         desc.count = 1
-        desc.buffers = createBuffers(SECBUFFER_TOKEN, token).first.ptr
+        desc.buffers = SecBuffer.createArray(SECBUFFER_TOKEN, token).first.to_ptr
         desc
       end
     end
 
     class Context < Net::SSH::Kerberos::Common::Context
 			def init(token=nil)
-			  output = API.createTokenBufferDesc 12288
-        if token.nil?
-          ctx = API::SecHandle.malloc
-          input = nil
-			  else
-				  ctx = prev = @state.handle
-	        input = API.createTokenBufferDesc token
-			  end
+			  prev = @state.handle if @state && ! @state.handle.nil?
+			  ctx = prev || API::SecHandle.malloc
+        input = API::SecBufferDesc.create(token) if token
+			  output = API::SecBufferDesc.create(12288)
 			  result = API.initializeSecurityContext @credentials, prev, @target,
 				                 ISC_REQ_DELEGATE | ISC_REQ_MUTUAL_AUTH | ISC_REQ_INTEGRITY, 0,
 				                 SECURITY_NATIVE_DREP, input, 0, ctx, output, 0, ts=TimeStamp.malloc
@@ -163,7 +161,7 @@ module Net; module SSH; module Kerberos; module Drivers
 			  if result.failure?
 			    input.token and raise GeneralError, "Error initializing security context: #{result} #{input.inspect}"
 			  end
-			  @state = State.new(ctx, result, output.buffers.data, ts)
+			  @state = State.new(ctx, result, output.buffer(0).to_s, ts)
 			  if result.complete?
 			    result = API.queryContextAttributes ctx, SECPKG_ATTR_SIZES, @sizes=SecPkgSizes.new
 			    @handle = @state.handle
@@ -175,12 +173,11 @@ module Net; module SSH; module Kerberos; module Drivers
         desc = API::SecBufferDesc.malloc
         desc.version = 0
         desc.count = 2
-        desc.buffers = createBuffers([SECBUFFER_DATA, SECBUFFER_TOKEN],
-                                      [token, @sizes.max_signature]).first.ptr
+        desc.buffers = SecBuffer.createArray([SECBUFFER_DATA, SECBUFFER_TOKEN],
+		                                         [token, @sizes.max_signature]).first.ptr
 			  @state.result = API.makeSignature @handle, 0, desc, 0
 			  @state.result.complete? or raise GeneralError, "Error creating the signature: #{result}"
-		    token = desc.buffer(1)
-		    return token.data.to_s(token.data.length)
+		    desc.buffer(1).to_s
 			end
 			
 		private

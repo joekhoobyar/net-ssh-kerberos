@@ -2,10 +2,10 @@ require File.join(File.dirname(__FILE__), 'test_helper.rb')
 
 class GssContextTest < Test::Unit::TestCase
 
-if defined? Net::SSH::Kerberos::GSS::Context
+if defined? Net::SSH::Kerberos::Drivers::GSS::Context
 
   def setup
-    @gss = Net::SSH::Kerberos::GSS::Context.new 
+    @gss = Net::SSH::Kerberos::Drivers::GSS::Context.new 
   end
 
   def teardown
@@ -22,7 +22,6 @@ if defined? Net::SSH::Kerberos::GSS::Context
     @gss.init nil
     state = @gss.send(:state)
     assert ! state.handle.nil?, "Should have provided an initial context"
-    assert ! state.handle.handle.nil?, "Should have provided an initial context"
     assert ! state.token.nil?, "Should have built an initial token"
     assert state.token.length.nonzero?, "Should have built an initial token"
   end

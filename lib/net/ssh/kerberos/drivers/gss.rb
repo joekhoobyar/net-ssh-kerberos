@@ -198,9 +198,9 @@ EOCODE
 		private
 		  
 		  def acquire_current_credentials
-		    result = API.gss_acquire_cred nil, 60, nil, GSS_C_INITIATE, nil, nil, nil
+		    result = API.gss_acquire_cred nil, 60, nil, GSS_C_INITIATE, nil, nil, 0
 		    result.ok? or raise GeneralError, "Error acquiring credentials: #{result}"
-	      result = API.gss_inquire_cred creds=API._args_[4], nil, nil, nil, nil
+	      result = API.gss_inquire_cred creds=API._args_[4], nil, nil, 0, nil
 	      result.ok? or raise GeneralError, "Error inquiring credentials: #{result}"
 	      begin
 	        name, oids = API._args_[1], API._args_[4]

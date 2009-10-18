@@ -37,3 +37,15 @@ module Net; module SSH; module Kerberos;
   end
 
 end; end; end
+
+if RUBY_PLATFORM.include?('win') && ! RUBY_PLATFORM.include?('dar'); then
+  begin require 'net/ssh/kerberos/drivers/sspi'
+  rescue => e
+    raise e unless RuntimeError === e and e.message =~ /^LoadLibrary: ([^\s]+)/
+	  $stderr.puts "error: While loading Kerberos SSPI: failed to load library: #{$1}"
+  end
+end
+begin require 'net/ssh/kerberos/drivers/gss'
+rescue => e
+	raise e unless defined? Net::SSH::Kerberos::SSPI::Drivers::Context
+end

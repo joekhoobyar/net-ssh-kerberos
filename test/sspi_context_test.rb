@@ -2,10 +2,10 @@ require File.join(File.dirname(__FILE__), 'test_helper.rb')
 
 class SspiContextTest < Test::Unit::TestCase
 
-if defined? Net::SSH::Kerberos::SSPI::Context
+if defined? Net::SSH::Kerberos::Drivers::SSPI::Context
 
   def setup
-    @gss = Net::SSH::Kerberos::SSPI::Context.new 
+    @gss = Net::SSH::Kerberos::Drivers::SSPI::Context.new 
   end
 
   def teardown
