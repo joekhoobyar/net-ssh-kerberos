@@ -10,9 +10,6 @@ module Net
         class GssapiWithMic < Abstract
           include Net::SSH::Kerberos::Constants
           
-	        # OID 1.2.840.113554.1.2.2 - Kerberos 5 (RFC 1964)
-          SUPPORTED_OID = "\x06\x09\x2a\x86\x48\x86\xf7\x12\x01\x02\x02"
-
           # Attempts to perform gssapi-with-mic Kerberos authentication
           def authenticate(next_service, username, password=nil)
             gss_klass = (defined?(Net::SSH::Kerberos::SSPI::Context) ?
@@ -22,8 +19,8 @@ module Net
             # Try to start gssapi-with-mic authentication.
 	          debug { "trying kerberos authentication" }
 	          req = userauth_request(username, next_service, "gssapi-with-mic")
-	          req.write_long 1
-	          req.write_string SUPPORTED_OID
+	          req.write_long(1)
+	          req.write_string(6.chr + GSS_MECH_KRB5.length.chr + GSS_MECH_KRB5)
 	          send_message req
 	          message = session.next_message
 	          case message.type
