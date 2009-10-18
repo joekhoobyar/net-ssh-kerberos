@@ -75,20 +75,29 @@ EOCODE
 	    typealias 'OM_uint32', 'unsigned int'
       typealias "OM_uint32_ref", 'unsigned int ref' 
 	    typealias 'size_t', 'unsigned int'
-	
-	    GssBuffer = struct [ "size_t length", "char *value" ]
+      typealias "gss_bytes_t", "P", nil, nil, "P", PTR_ENC
+	    GssBuffer = struct2 [ "size_t length", "gss_bytes_t value" ] do
+        def to_s; value.to_s(length) end
+      end
 	    typealias 'gss_buffer_desc', 'GssBuffer'
 	    typealias 'gss_buffer_t', 'gss_buffer_desc *'
-	    GssOID = struct2 [ "OM_uint32 length", "char *elements" ] do
-	      def to_hex
-	        s = elements.to_s
-	        s.unpack("H2" * s.length).join ' '
-	      end
+	    GssOID = struct2 [ "OM_uint32 length", "gss_bytes_t elements" ] do
+        def to_s; elements.to_s(length) end
+	      def inspect; 'OID: ' + to_s.unpack("H2" * length).join(' ') end
 	    end
-	    typealias 'gss_OID', 'p', PTR_ENC, PTR_DEC(GssOID)
+	    typealias 'gss_OID', 'P', PTR_ENC, PTR_DEC(GssOID)
 	    typealias 'gss_OID_ref', 'p', PTR_REF_ENC, PTR_REF_DEC(GssOID)
-	    GssOIDSet = struct [ "size_t count", "gss_OID elements" ]
-	    typealias 'gss_OID_set', 'p', PTR_ENC, PTR_DEC(GssOIDSet)
+	    GssOIDSet = struct2 [ "size_t count", "gss_OID elements" ] do
+        def oids
+          if @oids.nil? or elements != (@oids.first.to_ptr rescue nil)
+            @oids = []
+            0.upto(count-1) { |n| @oids[n] = GssOID.new(elements + n*GssOID.size) } unless elements.nil?
+          end
+          @oids
+        end
+	      def inspect; 'OIDSet: [' + oids.map {|o| o.inspect }.join(', ') + ']' end
+      end
+	    typealias 'gss_OID_set', 'P', PTR_ENC, PTR_DEC(GssOIDSet)
 	    typealias 'gss_OID_set_ref', 'p', PTR_REF_ENC, PTR_REF_DEC(GssOIDSet)
 	
 	    typealias 'gss_ctx_id_t', 'void *'
@@ -124,13 +133,13 @@ EOCODE
 	
 	    gss_func "gss_acquire_cred", "gss_name_t, OM_uint32, gss_OID_set, gss_cred_usage_t, gss_cred_id_ref, gss_OID_set_ref, OM_uint32_ref"
 	    gss_func "gss_inquire_cred", "gss_cred_id_t, gss_name_ref, OM_uint32_ref, gss_cred_usage_ref, gss_OID_set_ref"
+      gss_func "gss_display_name", "gss_name_t, gss_buffer_t, gss_OID_ref"
 	    gss_func "gss_release_cred", "gss_cred_id_ref"
 	    gss_func "gss_release_oid_set", "gss_OID_set_ref"
 	    gss_func "gss_release_name", "gss_name_ref"
+      gss_func "gss_release_buffer", "gss_buffer_t"
 
 #	    extern "OM_uint32 gss_import_name (OM_uint32 *, gss_buffer_t, gss_OID, gss_name_t *)"
-#	    extern "OM_uint32 gss_release_name (OM_uint32 *, gss_name_t *)"
-#	    extern "OM_uint32 gss_display_name (OM_uint32 *, gss_name_t, gss_buffer_t, gss_OID *)"
 #	    extern "OM_uint32 gss_release_buffer (OM_uint32 *, gss_buffer_t)"
 #	    extern "OM_uint32 gss_init_sec_context (OM_uint32 *, gss_cred_id_t, gss_ctx_id_t *, gss_name_t, gss_OID, OM_uint32, OM_uint32, void *, gss_buffer_t, gss_OID *, gss_buffer_t, OM_uint32 *, OM_uint32 *)"
 #	    extern "OM_uint32 gss_delete_sec_context (OM_uint32 *, gss_ctx_id_t *, gss_buffer_t)"
