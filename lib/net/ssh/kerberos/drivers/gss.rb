@@ -133,17 +133,16 @@ EOCODE
 	
 	    gss_func "gss_acquire_cred", "gss_name_t, OM_uint32, gss_OID_set, gss_cred_usage_t, gss_cred_id_ref, gss_OID_set_ref, OM_uint32_ref"
 	    gss_func "gss_inquire_cred", "gss_cred_id_t, gss_name_ref, OM_uint32_ref, gss_cred_usage_ref, gss_OID_set_ref"
+      gss_func "gss_import_name", "gss_buffer_t, gss_OID, gss_name_ref"
       gss_func "gss_display_name", "gss_name_t, gss_buffer_t, gss_OID_ref"
 	    gss_func "gss_release_cred", "gss_cred_id_ref"
 	    gss_func "gss_release_oid_set", "gss_OID_set_ref"
 	    gss_func "gss_release_name", "gss_name_ref"
       gss_func "gss_release_buffer", "gss_buffer_t"
-
-#	    extern "OM_uint32 gss_import_name (OM_uint32 *, gss_buffer_t, gss_OID, gss_name_t *)"
-#	    extern "OM_uint32 gss_release_buffer (OM_uint32 *, gss_buffer_t)"
-#	    extern "OM_uint32 gss_init_sec_context (OM_uint32 *, gss_cred_id_t, gss_ctx_id_t *, gss_name_t, gss_OID, OM_uint32, OM_uint32, void *, gss_buffer_t, gss_OID *, gss_buffer_t, OM_uint32 *, OM_uint32 *)"
-#	    extern "OM_uint32 gss_delete_sec_context (OM_uint32 *, gss_ctx_id_t *, gss_buffer_t)"
-#	    extern "OM_uint32 gss_get_mic(OM_uint32 *, gss_ctx_id_t, gss_qop_t, gss_buffer_t, gss_buffer_t)"
+	    gss_func "gss_init_sec_context", "gss_cred_id_t, gss_ctx_id_ref, gss_name_t, gss_OID, OM_uint32, OM_uint32, void *, "+
+                                        "gss_buffer_t, gss_OID_ref, gss_buffer_t, OM_uint32_ref, OM_uint32_ref"
+      gss_func "gss_delete_sec_context", "gss_ctx_id_ref, gss_buffer_t"
+	    gss_func "gss_get_mic", "gss_ctx_id_t, gss_qop_t, gss_buffer_t, gss_buffer_t"
 	
 #	    if @LIBS.empty? and ! defined? Net::SSH::Kerberos::SSPI::Context
 #	      $stderr.puts "error: Failed to a find a supported GSS implementation on this platform (#{RUBY_PLATFORM})"
