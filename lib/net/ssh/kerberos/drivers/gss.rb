@@ -77,6 +77,7 @@ EOCODE
         def to_s; elements.to_s(length) end
 	      def inspect; 'OID: ' + to_s.unpack("H2" * length).join(' ') end
 	    end
+      def GssOID.create(bytes) new [bytes.length, bytes].pack("LP#{bytes.length}").to_ptr end
 	    typealias 'gss_OID', 'P', PTR_ENC, PTR_DEC(GssOID)
 	    typealias 'gss_OID_ref', 'p', PTR_REF_ENC, PTR_REF_DEC(GssOID)
 	    GssOIDSet = struct2 [ "size_t count", "gss_OID elements" ] do
@@ -142,16 +143,16 @@ EOCODE
 	  end
 
 	  # GSSAPI / Kerberos 5 OID(s)
-	  GSS_C_NT_PRINCIPAL = API::GssOID.new([10, "\x2a\x86\x48\x86\xf7\x12\x01\x02\x01\x01"].pack('LP10').to_ptr)
-	  GSS_C_NT_MACHINE_UID_NAME = API::GssOID.new([10, "\x2a\x86\x48\x86\xf7\x12\x01\x02\x01\x02"].pack('LP10').to_ptr)
-	  GSS_C_NT_STRING_UID_NAME = API::GssOID.new([10, "\x2a\x86\x48\x86\xf7\x12\x01\x02\x01\x03"].pack('LP10').to_ptr)
-	  GSS_C_NT_HOSTBASED_SERVICE = API::GssOID.new([10, "\x2a\x86\x48\x86\xf7\x12\x01\x02\x01\x04"].pack('LP10').to_ptr)
-	  GSS_C_NT_ANONYMOUS = API::GssOID.new([6, "\x2b\x06\x01\x05\x06\x03"].pack('LP6').to_ptr)
-	  GSS_C_NT_EXPORT_NAME = API::GssOID.new([6, "\x2b\x06\x01\x05\x06\x04"].pack('LP6').to_ptr)
-	  GSS_C_KRB5 = API::GssOID.new([GSS_KRB5_MECH.length, GSS_KRB5_MECH].pack("LP#{GSS_KRB5_MECH.length}").to_ptr)
+	  GSS_C_NT_PRINCIPAL = API::GssOID.create("\x2a\x86\x48\x86\xf7\x12\x01\x02\x01\x01")
+	  GSS_C_NT_MACHINE_UID_NAME = API::GssOID.create("\x2a\x86\x48\x86\xf7\x12\x01\x02\x01\x02")
+	  GSS_C_NT_STRING_UID_NAME = API::GssOID.create("\x2a\x86\x48\x86\xf7\x12\x01\x02\x01\x03")
+	  GSS_C_NT_HOSTBASED_SERVICE = API::GssOID.create("\x2a\x86\x48\x86\xf7\x12\x01\x02\x01\x04")
+	  GSS_C_NT_ANONYMOUS = API::GssOID.create("\x2b\x06\x01\x05\x06\x03")
+	  GSS_C_NT_EXPORT_NAME = API::GssOID.create("\x2b\x06\x01\x05\x06\x04")
+	  GSS_C_KRB5 = API::GssOID.create(GSS_KRB5_MECH)
 	
 	  # GSSAPI / Kerberos 5  Deprecated / Proprietary OID(s)
-	  GSS_C_NT_HOSTBASED_SERVICE_X = API::GssOID.new([6, "\x2b\x06\x01\x05\x06\x02"].pack('LP6').to_ptr)
+	  GSS_C_NT_HOSTBASED_SERVICE_X = API::GssOID.create("\x2b\x06\x01\x05\x06\x02")
 
 	end
 end; end; end; end
