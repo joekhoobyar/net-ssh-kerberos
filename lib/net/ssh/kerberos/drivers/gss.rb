@@ -69,13 +69,13 @@ EOCODE
 	    typealias 'size_t', 'unsigned int'
       typealias "gss_bytes_t", "P", nil, nil, "P", PTR_ENC
 	    GssBuffer = struct2 [ "size_t length", "gss_bytes_t value" ] do
-        def to_s; value.to_s(length) end
+        def to_s; value && value.to_s(length) end
       end
 	    typealias 'gss_buffer_desc', 'GssBuffer'
 	    typealias 'gss_buffer_t', 'gss_buffer_desc *'
 	    GssOID = struct2 [ "OM_uint32 length", "gss_bytes_t elements" ] do
-        def to_s; elements.to_s(length) end
-	      def inspect; 'OID: ' + to_s.unpack("H2" * length).join(' ') end
+        def to_s; elements && elements.to_s(length) end
+	      def inspect; 'OID: ' + (to_s.unpack("H2" * length).join(' ') rescue 'nil') end
 	    end
       def GssOID.create(bytes) new [bytes.length, bytes].pack("LP#{bytes.length}").to_ptr end
 	    typealias 'gss_OID', 'P', PTR_ENC, PTR_DEC(GssOID)
@@ -124,7 +124,7 @@ EOCODE
 	      def to_s; "%#4.4x%4.4x [%#8.8x]" % [major, status, minor] end
 	    end
 	
-	    gss_func "gss_acquire_cred", "gss_name_t, OM_uint32, gss_OID_set, gss_cred_usage_t, gss_cred_id_ref, gss_OID_set_ref, OM_uint32_ref"
+	    gss_func "gss_acquire_cred", "gss_name_t, OM_uint32, gss_OID_set, gss_cred_usage_t, gss_cred_id_ref, void *, OM_uint32_ref"
 	    gss_func "gss_inquire_cred", "gss_cred_id_t, gss_name_ref, OM_uint32_ref, gss_cred_usage_ref, gss_OID_set_ref"
       gss_func "gss_import_name", "gss_buffer_t, gss_OID, gss_name_ref"
       gss_func "gss_display_name", "gss_name_t, gss_buffer_t, gss_OID_ref"
@@ -154,5 +154,90 @@ EOCODE
 	  # GSSAPI / Kerberos 5  Deprecated / Proprietary OID(s)
 	  GSS_C_NT_HOSTBASED_SERVICE_X = API::GssOID.create("\x2b\x06\x01\x05\x06\x02")
 
+	  class Context < Net::SSH::Kerberos::Common::Context
+	
+		  GssResult = API::GssResult
+		
+		  def init(token=nil)
+		    if token.nil?
+		      input = API::GssBuffer.malloc
+		      input.value = token.to_ptr
+		      input.length = token.length
+		    end
+		    context = @state.handle if @state
+		    result = API.gss_init_sec_context @credentials, context, @target, GSS_C_KRB5,
+	                                        GSS_C_DELEG_FLAG | GSS_C_MUTUAL_FLAG | GSS_C_INTEG_FLAG, 60,
+	                                        GSS_C_NO_CHANNEL_BINDINGS, input, nil, buffer=API::GssBuffer.malloc, 0, 0
+		    result.failure? and raise GeneralError, "Error initializing security context: #{result}"
+		    begin
+		      @state = State.new(context, result, buffer.to_s, nil)
+		      @handle = @state.handle if result.complete?
+		      return @state.token
+		    ensure
+		      API.gss_release_buffer buffer if buffer.value
+		    end
+		  end
+		  
+		  def get_mic(token=nil)
+		    input = API::GssBuffer.malloc
+		    input.value = token.to_ptr
+		    input.length = token.length
+		    @state.result = API.gss_get_mic @handle, GSS_C_QOP_DEFAULT, input, output=API::GssBuffer.malloc
+		    unless @state.result.complete? and output
+		      raise GeneralError, "Error creating the signature: #{@state.result}"
+		    end
+		    begin return output.to_s
+		    ensure API.gss_release_buffer output
+		    end
+		  end
+		
+		protected
+		
+		  def state; @state end
+		  
+		private
+		  
+		  def acquire_current_credentials
+		    result = API.gss_acquire_cred nil, 60, nil, GSS_C_INITIATE, nil, nil, nil
+		    result.ok? or raise GeneralError, "Error acquiring credentials: #{result}"
+	      result = API.gss_inquire_cred creds=API._args_[4], nil, nil, nil, nil
+	      result.ok? or raise GeneralError, "Error inquiring credentials: #{result}"
+	      begin
+	        name, oids = API._args_[1], API._args_[4]
+	        result = API.gss_display_name name, buffer=API::GssBuffer.malloc, nil
+	        result.ok? or raise GeneralError, "Error getting display name: #{result}"
+	        begin return [creds, buffer.to_s]
+	        ensure API.gss_release_buffer buffer
+	        end
+	      ensure
+	        API.gss_release_name name
+          API.gss_release_oid_set oids
+	      end
+		  end
+		
+		  def release_credentials(creds)
+		    creds.nil? or API.gss_release_cred creds
+		  end
+		
+		  def import_server_name(host)
+		    host = 'host@' + host
+		    buffer = API::GssBuffer.malloc
+		    buffer.value = host.to_ptr
+		    buffer.length = host.length
+		    result = API.gss_import_name buffer, GSS_C_NT_HOSTBASED_SERVICE, nil
+		    result.failure? and raise GeneralError, "Error importing name: #{result} #{input.inspect}"
+		    [API._args_[2], host]
+		  end
+		
+		  def release_server_name(target)
+		    target.nil? or API.gss_release_name target
+		  end
+		
+		  def delete_context(handle)
+		    handle.nil? or API.gss_delete_sec_context handle, nil
+		  end
+		
+		end
+		
 	end
 end; end; end; end
