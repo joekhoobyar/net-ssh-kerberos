@@ -10,14 +10,14 @@ class GssTest < Test::Unit::TestCase
     creds = API._args_[4]
     assert_not_equal creds, GSS_C_NO_CREDENTIAL, "Should acquire default credentials"
     begin
-      result = API.gss_inquire_cred creds, nil, nil, 0, nil
+      result = API.gss_inquire_cred creds, nil, 0, 0, nil
       assert result.ok?, "gss_inquire_cred failed: #{result}"
       name, oids = API._args_[1], API._args_[4]
       assert_not_equal name, GSS_C_NO_NAME, "Should provide the internal name"
       assert_not_equal oids, GSS_C_NO_OID_SET, "Should provide the supported oids"
       assert oids.count > 0, "Should provide the supported oids"
       begin
-        result = API.gss_display_name, name, buffer=API::GssBuffer.malloc, nil
+        result = API.gss_display_name name, buffer=API::GssBuffer.malloc, nil
         assert result.ok?, "gss_display_name failed: #{result}"
         assert buffer.length > 0, "Should provide the display name"
         begin
@@ -29,8 +29,6 @@ class GssTest < Test::Unit::TestCase
       ensure
         API.gss_release_name name
         API.gss_release_oid_set oids
-        assert_equal 0, name.handle.to_i, "Should release the internal name"
-        assert_equal 0, oids.ptr.to_i, "Should release the supported oids"
       end
     ensure
       API.gss_release_cred creds
@@ -61,7 +59,7 @@ class GssTest < Test::Unit::TestCase
     context, actual_mech = API._args_[1], API._args_[8]
     assert_not_equal context, GSS_C_NO_CONTEXT, "Should initialize the security context"
     begin
-      assert_equal GSS_S_CONTINUE_NEEDED, result, "Should need continued initialization of the security context"
+      assert_equal result.status, GSS_S_CONTINUE_NEEDED, "Should need continued initialization of the security context"
       assert buffer.length > 0, "Should output a token to send to the server"
       assert_not_equal actual_mech, GSS_C_NO_OID, "Should initialize the security context"
       #$stderr.puts "context: (#{buffer.length}) (OID: #{actual_mech.oid.length}, #{actual_mech.oid.to_hex})"

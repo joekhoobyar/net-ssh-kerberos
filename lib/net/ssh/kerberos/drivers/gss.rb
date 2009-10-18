@@ -159,7 +159,7 @@ EOCODE
 		  GssResult = API::GssResult
 		
 		  def init(token=nil)
-		    if token.nil?
+		    unless token.nil?
 		      input = API::GssBuffer.malloc
 		      input.value = token.to_ptr
 		      input.length = token.length
@@ -170,7 +170,7 @@ EOCODE
 	                                        GSS_C_NO_CHANNEL_BINDINGS, input, nil, buffer=API::GssBuffer.malloc, 0, 0
 		    result.failure? and raise GeneralError, "Error initializing security context: #{result}"
 		    begin
-		      @state = State.new(context, result, buffer.to_s, nil)
+		      @state = State.new(context=API._args_[8], result, buffer.to_s, nil)
 		      @handle = @state.handle if result.complete?
 		      return @state.token
 		    ensure
@@ -200,7 +200,7 @@ EOCODE
 		  def acquire_current_credentials
 		    result = API.gss_acquire_cred nil, 60, nil, GSS_C_INITIATE, nil, nil, 0
 		    result.ok? or raise GeneralError, "Error acquiring credentials: #{result}"
-	      result = API.gss_inquire_cred creds=API._args_[4], nil, nil, 0, nil
+	      result = API.gss_inquire_cred creds=API._args_[4], nil, 0, 0, nil
 	      result.ok? or raise GeneralError, "Error inquiring credentials: #{result}"
 	      begin
 	        name, oids = API._args_[1], API._args_[4]
