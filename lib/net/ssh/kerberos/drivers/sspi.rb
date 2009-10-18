@@ -54,28 +54,28 @@ module Net; module SSH; module Kerberos; module Drivers
       
       dlload 'secur32'
     
-      typealias("void **", "p", PTR_REF_ENC, proc{|v| v.ptr})
-      typealias("SECURITY_STATUS", "L", proc{|v| v.to_i }, proc{|v| SSPIResult.new(v) })
-      typealias("USHORT", "unsigned short")
-      typealias("ULONG_REF", "unsigned long ref")
-      typealias("SEC_CHAR *", "char *")
-      typealias("PCtxtBuffer", "void **")
-      typealias("PCharBuffer", "P", nil, nil, "P", PTR_ENC)
+      typealias "void **", "p", PTR_REF_ENC, proc{|v| v.ptr}
+      typealias "SECURITY_STATUS", "L", proc{|v| v.to_i }, proc{|v| SSPIResult.new(v) }
+      typealias "USHORT", "unsigned short"
+      typealias "ULONG_REF", "unsigned long ref"
+      typealias "SEC_CHAR *", "char *"
+      typealias "PCtxtBuffer", "void **"
+      typealias "PCharBuffer", "P", nil, nil, "P", PTR_ENC
       SecPkgInfo = struct [ "ULONG capabilities", "USHORT version", "USHORT rpcid",
                             "ULONG max_token", "SEC_CHAR *name", "SEC_CHAR *comment" ]
-      typealias("PSecPkgInfo", "p", PTR_REF_ENC, PTR_REF_DEC(SecPkgInfo))
+      typealias "PSecPkgInfo", "p", PTR_REF_ENC, PTR_REF_DEC(SecPkgInfo)
       SecHandle = struct2([ "ULONG lower", "ULONG upper" ]) do def nil?; lower.zero? && upper.zero? end end
-      typealias("PSecHandle", "P")
-      typealias("PCredHandle", "PSecHandle")
-      typealias("PCtxtHandle", "PSecHandle")
+      typealias "PSecHandle", "P"
+      typealias "PCredHandle", "PSecHandle"
+      typealias "PCtxtHandle", "PSecHandle"
       SecBuffer = struct [ "ULONG length", "ULONG type", "PCharBuffer data" ]
-      typealias("PSecBuffer", "P", nil, nil, "P", PTR_ENC, PTR_DEC(SecBuffer))
+      typealias "PSecBuffer", "P", nil, nil, "P", PTR_ENC, PTR_DEC(SecBuffer)
       SecBufferDesc = struct2 [ "ULONG version", "ULONG count", "PSecBuffer buffers" ] do
         def buffer(n) SecBuffer.new(@ptr[:buffers] + SecBuffer.size * n) end
       end
-      typealias("PSecBufferDesc", "P")
+      typealias "PSecBufferDesc", "P"
       TimeStamp = SecHandle
-      typealias("PTimeStamp", "P")
+      typealias "PTimeStamp", "P"
       SecPkgSizes = struct [ "ULONG max_token", "ULONG max_signature",
                              "ULONG block_size", "ULONG security_trailer" ]
     

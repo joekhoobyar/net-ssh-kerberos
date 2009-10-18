@@ -7,12 +7,12 @@ module Net; module SSH; module Kerberos;
 
     # Some useful DL extensions.
 	  module DLExtensions
-	    PTR_ENC = proc{|v| v && v.to_ptr }
-	    PTR_REF_ENC = proc{|v| (v.nil? ? DL::PtrData.new(v) : v.to_ptr).ref }
+	    PTR_ENC = proc{|v| v && (DL::PtrData===v ? v : v.to_ptr) }
+	    PTR_REF_ENC = proc{|v| (v.nil? ? DL::PtrData.new(v) : (DL::PtrData===v ? v : v.to_ptr)).ref }
 	      
 	    module ClassMethods
 		    def PTR_DEC(t) proc{|v| v && t.new(v)} end
-		    def PTR_REF_DEC(t) proc{|v| v && t.new(v.ptr)} end
+		    def PTR_REF_DEC(t) proc{|v| v && v.ptr && t.new(v.ptr)} end
 		  
 		    def struct2(fields, &block)
 		      t = struct fields
