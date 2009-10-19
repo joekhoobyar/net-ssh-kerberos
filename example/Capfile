@@ -1,0 +1,4 @@
+$: << "./lib"
+require 'net/ssh/kerberos'
+set :ssh_options, { :auth_methods => %w(gssapi-with-mic publickey hostbased password keyboard-interactive) }
+
