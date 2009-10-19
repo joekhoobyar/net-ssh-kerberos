@@ -126,10 +126,10 @@ module Net; module SSH; module Kerberos; module Drivers
       extern 'SECURITY_STATUS DeleteSecurityContext(PCtxtHandle)'
       
       def SecBuffer.createArray(types,data)
-        buffs, types, data = [], Array(types), Array(data)
-        ptr = DL::malloc(API::SecBuffer.size * types.length)
-        0.upto(types.length - 1) do |n|
-          buff = API::SecBuffer.new(ptr + n*API::SecBuffer.size)
+        buffs = []
+        mem = DL::malloc(size * types.size)
+        0.upto(types.size - 1) do |n|
+          buff = new DL::PtrData.new(mem.to_i + (n * size), size)
           buff.type = types[n]
           n = data[n]
           buff.data = Fixnum===n ? "\0" * n : n
@@ -143,7 +143,7 @@ module Net; module SSH; module Kerberos; module Drivers
         desc = API::SecBufferDesc.malloc
         desc.version = 0
         desc.count = 1
-        desc.buffers = SecBuffer.createArray(SECBUFFER_TOKEN, token).first.to_ptr
+        desc.buffers = SecBuffer.createArray([SECBUFFER_TOKEN], [token]).first.to_ptr
         desc
       end
     end
@@ -152,8 +152,7 @@ module Net; module SSH; module Kerberos; module Drivers
 			def init(token=nil)
 			  prev = @state.handle if @state && ! @state.handle.nil?
 			  ctx = prev || API::SecHandle.malloc
-			  $stderr.puts "init: #{token.length}" if token
-        input = API::SecBufferDesc.create(token) if token
+			  input = API::SecBufferDesc.create(token) if token
 			  output = API::SecBufferDesc.create(12288)
 			  result = API.initializeSecurityContext @credentials, prev, @target,
 				                 ISC_REQ_DELEGATE | ISC_REQ_MUTUAL_AUTH | ISC_REQ_INTEGRITY, 0,
@@ -171,7 +170,6 @@ module Net; module SSH; module Kerberos; module Drivers
 			end
 			
 			def get_mic(token)
-			  $stderr.puts "get_mic: #{token.length}"
         desc = API::SecBufferDesc.malloc
         desc.version = 0
         desc.count = 2
