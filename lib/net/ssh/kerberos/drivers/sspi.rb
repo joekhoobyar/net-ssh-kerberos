@@ -43,8 +43,7 @@ module Net; module SSH; module Kerberos; module Drivers
     ISC_REQ_INTEGRITY               = 0x00010000
     
     module API
-      extend DL::Importable
-      include DLExtensions
+      include DLDriver
       
       dlload 'secur32'
     

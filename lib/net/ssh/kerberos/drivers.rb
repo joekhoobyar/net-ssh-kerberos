@@ -6,7 +6,7 @@ module Net; module SSH; module Kerberos;
   module Drivers
 
     # Some useful DL extensions.
-	  module DLExtensions
+	  module DLDriver
 	    PTR_ENC = proc{|v| v && (DL::PtrData===v ? v : v.to_ptr) }
 	    PTR_REF_ENC = proc{|v| (v.nil? ? DL::PtrData.new(v) : (DL::PtrData===v ? v : v.to_ptr)).ref }
 	      
@@ -30,12 +30,20 @@ module Net; module SSH; module Kerberos;
 		    end
 	    end
 	    
-	    def self.included(base)
-	      base.extend ClassMethods
-	    end
-	  end
-	  
-	  @@available = []
+			if RUBY_VERSION =~ /^1\.8/
+				def self.included(base)
+					base.extend DL::Importable
+					base.extend ClassMethods
+				end
+			else
+				def self.included(base)
+					base.extend DL::Importer
+					base.extend ClassMethods
+				end
+			end
+		end
+
+		@@available = []
     def self.available; @@available end
 
 		if RUBY_PLATFORM.include?('win') && ! RUBY_PLATFORM.include?('dar'); then

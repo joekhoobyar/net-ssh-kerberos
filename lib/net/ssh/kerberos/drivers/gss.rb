@@ -36,8 +36,7 @@ module Net; module SSH; module Kerberos; module Drivers;
     GSS_C_MECH_CODE = 2
 
 	  module API
-	    extend DL::Importable
-	    include DLExtensions
+			include DLDriver
 	    
 	    def self.gss_func(sym, sig)
 	      extern "OM_uint32 #{sym} (OM_uint32_ref, #{sig})"
@@ -52,10 +51,10 @@ module Net; module SSH; module Kerberos; module Drivers;
 EOCODE
 	    end
 	
-	    if RUBY_PLATFORM =~ /cygwin/
-	      dlload('cyggss-1.dll')
-	    else
-	      dlload('libgssapi_krb5.so')
+	    case RUBY_PLATFORM
+			when /cygwin/; dlload('cyggss-1.dll')
+			when /darwin/; dlload('libgssapi_krb5.dylib')
+	    else dlload('libgssapi_krb5.so')
 	    end 
 	
       typealias "void **", "p", PTR_REF_ENC, proc{|v| v.ptr}

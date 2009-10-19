@@ -1,9 +1,9 @@
 #$DEBUG = 1
 
-$: << File.join(File.dirname(__FILE__), '..', 'lib')
 require 'socket'
 require 'rubygems'
 gem 'net-ssh'
+$:.unshift File.join(File.dirname(__FILE__), '..', 'lib')
 require 'net/ssh'
 require 'net/ssh/errors'
 require 'net/ssh/kerberos'
