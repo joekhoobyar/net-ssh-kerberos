@@ -70,8 +70,8 @@ EOCODE
 	    typealias 'gss_buffer_desc', 'GssBuffer'
 	    typealias 'gss_buffer_t', 'gss_buffer_desc *'
 	    GssOID = struct2 [ "OM_uint32 length", "gss_bytes_t elements" ] do
-	      def eql?(oid) length==oid.length && to_s==oid.to_s end
-	      def ==(oid) length==oid.length && to_s==oid.to_s end
+	      def eql?(oid) !oid.nil? && length==oid.length && to_s==oid.to_s end
+	      def ==(oid) !oid.nil? && length==oid.length && to_s==oid.to_s end
         def to_s; elements.to_s(length) if length > 0 end
 	      def inspect; 'OID: ' + (to_s.unpack("H2" * length).join(' ') rescue 'nil') end
 	    end
@@ -119,15 +119,20 @@ EOCODE
 	      def routine_error; (@value >> 16) & 0x000000ff end
         def to_i; @value end
 	      def to_s
-          msgctx, msgbuff, msglist = 0, API::GssBuffer.malloc, []
+          orig_retval, orig_args = API._retval_, API._args_
           begin
-            result = API.gss_display_status @value, GSS_C_GSS_CODE, GSS_C_NO_OID, msgctx, msgbuff
-            result.ok? or return 'unknown'
-            msgctx = API._args_[3]
-            msglist << msgbuff.to_s
-            API.gss_release_buffer msgbuff
-          end until msgctx.zero?
-          msglist.empty? ? 'ok' : msglist.join(', ')
+            msgctx, msgbuff, msglist = 0, API::GssBuffer.malloc, []
+            begin
+              result = API.gss_display_status @value, GSS_C_GSS_CODE, GSS_C_NO_OID, msgctx, msgbuff
+              result.ok? or return 'unknown'
+              msgctx = API._args_[3]
+              msglist << msgbuff.to_s
+              API.gss_release_buffer msgbuff
+            end until msgctx.zero?
+            msglist.empty? ? 'ok' : msglist.join(', ')
+          ensure
+            API.instance_eval { @retval = orig_retval; @args = orig_args }
+          end
         end
 	    end
 	
@@ -162,7 +167,9 @@ EOCODE
     # GSSAPI - Kerberos 5 mechanism support.
     result = API.gss_indicate_mechs nil
     result.ok? or raise "gss_indicate_mechs failed: #{result}"
-    unless API._args_[0].oids.include? GSS_C_KRB5
+    if API._args_[0].oids.include? GSS_C_KRB5
+      API.gss_release_oid_set API._args_[0]
+    else
       raise "This GSSAPI library reports no support for Kerberos authentication"
     end
 
@@ -238,7 +245,7 @@ EOCODE
 		    buffer.value = host.to_ptr
 		    buffer.length = host.length
 		    result = API.gss_import_name buffer, GSS_C_NT_HOSTBASED_SERVICE, nil
-		    result.failure? and raise GeneralError, "Error importing name: #{result} #{input.inspect}"
+		    result.failure? and raise GeneralError, "Error importing name: #{result}"
 		    [API._args_[2], host]
 		  end
 		
