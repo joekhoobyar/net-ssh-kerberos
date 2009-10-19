@@ -14,7 +14,6 @@ EOTEXT
     gem.authors = ["Joe Khoobyar"]
     gem.rubyforge_project = 'net-ssh-krb'
     gem.add_runtime_dependency(%q<net-ssh>, [">= 2.0"])
-    gem.add_runtime_dependency(%q<rubysspi>, [">= 1.3"])
 
     # gem is a Gem::Specification... see http://www.rubygems.org/read/chapter/20 for additional settings
   end
