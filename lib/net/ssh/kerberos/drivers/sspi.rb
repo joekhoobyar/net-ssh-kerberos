@@ -1,9 +1,3 @@
-require 'dl/import'
-require 'dl/struct'
-
-require 'net/ssh/errors'
-require 'net/ssh/kerberos/common/context'
-
 module Net; module SSH; module Kerberos; module Drivers
 
   module SSPI
@@ -148,7 +142,7 @@ module Net; module SSH; module Kerberos; module Drivers
       end
     end
 
-    class Context < Net::SSH::Kerberos::Common::Context
+    class Context < Net::SSH::Kerberos::Context
 			def init(token=nil)
 			  prev = @state.handle if @state && ! @state.handle.nil?
 			  ctx = prev || API::SecHandle.malloc

@@ -27,7 +27,9 @@ if defined? Net::SSH::Kerberos::Drivers::GSS::Context
   end
 
 else
-  $stderr.puts "Skipping GSS tests on this platform: no supported GSSAPI library was loaded."
+  $stderr.puts "#{__FILE__}: Skipping GSS tests on this platform: no supported GSSAPI library was loaded."
+
+  def test_nothing; assert true end
 end
 
 end

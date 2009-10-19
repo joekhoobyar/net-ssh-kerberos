@@ -34,18 +34,24 @@ module Net; module SSH; module Kerberos;
 	      base.extend ClassMethods
 	    end
 	  end
+	  
+	  @@available = []
+    def self.available; @@available end
+
+		if RUBY_PLATFORM.include?('win') && ! RUBY_PLATFORM.include?('dar'); then
+		  begin require 'net/ssh/kerberos/drivers/sspi'; available << 'SSPI'
+		  rescue => e
+		    raise e unless RuntimeError === e and e.message =~ /^LoadLibrary: ([^\s]+)/
+			  $stderr.puts "error: While loading Kerberos SSPI: failed to load library: #{$1}"
+		  end
+		end
+		begin require 'net/ssh/kerberos/drivers/gss'; available << 'GSS'
+		rescue => e; raise e if available.empty?
+		end
+			
+		if available.empty?
+		  $stderr.puts "error: Failed to a find a supported GSS implementation on this platform (#{RUBY_PLATFORM})"
+		end
   end
 
 end; end; end
-
-if RUBY_PLATFORM.include?('win') && ! RUBY_PLATFORM.include?('dar'); then
-  begin require 'net/ssh/kerberos/drivers/sspi'
-  rescue => e
-    raise e unless RuntimeError === e and e.message =~ /^LoadLibrary: ([^\s]+)/
-	  $stderr.puts "error: While loading Kerberos SSPI: failed to load library: #{$1}"
-  end
-end
-begin require 'net/ssh/kerberos/drivers/gss'
-rescue => e
-	raise e unless defined? Net::SSH::Kerberos::SSPI::Drivers::Context
-end

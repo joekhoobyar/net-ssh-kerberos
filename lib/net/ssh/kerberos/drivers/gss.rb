@@ -1,10 +1,3 @@
-require 'dl/import'
-require 'dl/struct'
-
-require 'net/ssh/errors'
-require 'net/ssh/kerberos/constants'
-require 'net/ssh/kerberos/common/context'
-
 module Net; module SSH; module Kerberos; module Drivers;
 
   module GSS
@@ -149,10 +142,6 @@ EOCODE
       gss_func "gss_delete_sec_context", "gss_ctx_id_ref, gss_buffer_t"
 	    gss_func "gss_get_mic", "gss_ctx_id_t, gss_qop_t, gss_buffer_t, gss_buffer_t"
 	    gss_func "gss_display_status", "OM_uint32, int, gss_OID, OM_uint32_ref, gss_buffer_t"
-	
-#	    if @LIBS.empty? and ! defined? Net::SSH::Kerberos::SSPI::Context
-#	      $stderr.puts "error: Failed to a find a supported GSS implementation on this platform (#{RUBY_PLATFORM})"
-#	    end
 	  end
 
 	  # GSSAPI / Kerberos 5 OID(s)
@@ -167,7 +156,7 @@ EOCODE
 	  # GSSAPI / Kerberos 5  Deprecated / Proprietary OID(s)
 	  GSS_C_NT_HOSTBASED_SERVICE_X = API::GssOID.create("\x2b\x06\x01\x05\x06\x02")
 
-	  class Context < Net::SSH::Kerberos::Common::Context
+	  class Context < Net::SSH::Kerberos::Context
 	
 		  GssResult = API::GssResult
 		
