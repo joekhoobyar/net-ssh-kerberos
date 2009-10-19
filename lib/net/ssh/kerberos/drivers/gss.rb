@@ -67,14 +67,14 @@ EOCODE
 	    typealias 'OM_uint32', 'unsigned int'
       typealias "OM_uint32_ref", 'unsigned int ref' 
 	    typealias 'size_t', 'unsigned int'
-      typealias "gss_bytes_t", "P", nil, nil, "P", PTR_ENC
+      typealias "gss_bytes_t", "P" #, nil, nil, "P", PTR_ENC
 	    GssBuffer = struct2 [ "size_t length", "gss_bytes_t value" ] do
-        def to_s; value && value.to_s(length) end
+        def to_s; value.to_s(length) if length > 0 end
       end
 	    typealias 'gss_buffer_desc', 'GssBuffer'
 	    typealias 'gss_buffer_t', 'gss_buffer_desc *'
 	    GssOID = struct2 [ "OM_uint32 length", "gss_bytes_t elements" ] do
-        def to_s; elements && elements.to_s(length) end
+        def to_s; elements.to_s(length) if length > 0 end
 	      def inspect; 'OID: ' + (to_s.unpack("H2" * length).join(' ') rescue 'nil') end
 	    end
       def GssOID.create(bytes) new [bytes.length, bytes].pack("LP#{bytes.length}").to_ptr end
@@ -164,13 +164,14 @@ EOCODE
 		      input.value = token.to_ptr
 		      input.length = token.length
 		    end
+        buffer = API::GssBuffer.malloc
 		    context = @state.handle if @state
 		    result = API.gss_init_sec_context @credentials, context, @target, GSS_C_KRB5,
 	                                        GSS_C_DELEG_FLAG | GSS_C_MUTUAL_FLAG | GSS_C_INTEG_FLAG, 60,
-	                                        GSS_C_NO_CHANNEL_BINDINGS, input, nil, buffer=API::GssBuffer.malloc, 0, 0
+	                                        GSS_C_NO_CHANNEL_BINDINGS, input, nil, buffer, 0, 0
 		    result.failure? and raise GeneralError, "Error initializing security context: #{result}"
 		    begin
-		      @state = State.new(context=API._args_[8], result, buffer.to_s, nil)
+		      @state = State.new(API._args_[1], result, (buffer.to_s if buffer.length > 0), nil)
 		      @handle = @state.handle if result.complete?
 		      return @state.token
 		    ensure
