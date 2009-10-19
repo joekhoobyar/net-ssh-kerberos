@@ -142,6 +142,17 @@ module Net; module SSH; module Kerberos; module Drivers
       end
     end
 
+    def self.max_token; @@max_token end
+
+    # SSPI - Kerberos 5 mechanism support.
+    result = API.querySecurityPackageInfo "Kerberos", nil
+    if result.ok? and ! (pkg_info = API._args_[1]).nil?
+      @@max_token = pkg_info.max_token
+      API.freeContextBuffer pkg_info
+    else
+      raise "SSPI reports no support for Kerberos authentication"
+    end
+
     class Context < Net::SSH::Kerberos::Context
 			def init(token=nil)
 			  prev = @state.handle if @state && ! @state.handle.nil?

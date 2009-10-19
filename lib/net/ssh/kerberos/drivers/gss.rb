@@ -70,6 +70,8 @@ EOCODE
 	    typealias 'gss_buffer_desc', 'GssBuffer'
 	    typealias 'gss_buffer_t', 'gss_buffer_desc *'
 	    GssOID = struct2 [ "OM_uint32 length", "gss_bytes_t elements" ] do
+	      def eql?(oid) length==oid.length && to_s==oid.to_s end
+	      def ==(oid) length==oid.length && to_s==oid.to_s end
         def to_s; elements.to_s(length) if length > 0 end
 	      def inspect; 'OID: ' + (to_s.unpack("H2" * length).join(' ') rescue 'nil') end
 	    end
@@ -142,6 +144,7 @@ EOCODE
       gss_func "gss_delete_sec_context", "gss_ctx_id_ref, gss_buffer_t"
 	    gss_func "gss_get_mic", "gss_ctx_id_t, gss_qop_t, gss_buffer_t, gss_buffer_t"
 	    gss_func "gss_display_status", "OM_uint32, int, gss_OID, OM_uint32_ref, gss_buffer_t"
+	    gss_func "gss_indicate_mechs", "gss_OID_set_ref"
 	  end
 
 	  # GSSAPI / Kerberos 5 OID(s)
@@ -155,6 +158,13 @@ EOCODE
 	
 	  # GSSAPI / Kerberos 5  Deprecated / Proprietary OID(s)
 	  GSS_C_NT_HOSTBASED_SERVICE_X = API::GssOID.create("\x2b\x06\x01\x05\x06\x02")
+
+    # GSSAPI - Kerberos 5 mechanism support.
+    result = API.gss_indicate_mechs nil
+    result.ok? or raise "gss_indicate_mechs failed: #{result}"
+    unless API._args_[0].oids.include? GSS_C_KRB5
+      raise "This GSSAPI library reports no support for Kerberos authentication"
+    end
 
 	  class Context < Net::SSH::Kerberos::Context
 	

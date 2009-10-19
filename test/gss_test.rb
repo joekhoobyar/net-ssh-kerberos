@@ -2,7 +2,7 @@ require File.join(File.dirname(__FILE__), 'test_helper.rb')
 
 class GssTest < Test::Unit::TestCase
 
-if defined? Net::SSH::Kerberos::Drivers::GSS::Context
+if Net::SSH::Kerberos::Drivers.available.include? 'GSS'
 
   include Net::SSH::Kerberos::Drivers::GSS
 
@@ -72,8 +72,6 @@ if defined? Net::SSH::Kerberos::Drivers::GSS::Context
   end
 
 else
-  $stderr.puts "#{__FILE__}: Skipping GSS tests on this platform: no supported GSSAPI library was loaded."
-
   def test_nothing; assert true end
 end
 

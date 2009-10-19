@@ -6,10 +6,12 @@ require 'rubygems'
 gem 'net-ssh'
 require 'net/ssh'
 require 'net/ssh/errors'
-require 'net/ssh/kerberos/constants'
-require 'net/ssh/kerberos/context'
-require 'net/ssh/kerberos/drivers'
-require 'net/ssh/kerberos/drivers/sspi'
+require 'net/ssh/kerberos'
+
+unless Net::SSH::Kerberos::Drivers.available.include? 'SSPI'
+  $stderr.puts "No drivers supporting SSPI could be loaded."
+  exit 1
+end
 
 include Net::SSH::Kerberos::Drivers::SSPI
 include Net::SSH::Kerberos::Constants
