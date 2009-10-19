@@ -2,12 +2,12 @@
 
 Gem::Specification.new do |s|
   s.name = %q{net-ssh-kerberos}
-  s.version = "0.1.3"
+  s.version = "0.2.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Joe Khoobyar"]
-  s.date = %q{2009-10-16}
-  s.description = %q{Adds support for Microsoft Kerberos (SSPI) with the Net:SSH gem.
+  s.date = %q{2009-10-18}
+  s.description = %q{Extends Net::SSH by adding Kerberos authentication capability for password-less logins on multiple platforms.
 }
   s.email = %q{joe@ankhcraft.com}
   s.extra_rdoc_files = [
@@ -21,17 +21,14 @@ Gem::Specification.new do |s|
     "VERSION.yml",
     "lib/net/ssh/authentication/methods/gssapi_with_mic.rb",
     "lib/net/ssh/kerberos.rb",
-    "lib/net/ssh/kerberos/common/context.rb",
     "lib/net/ssh/kerberos/constants.rb",
-    "lib/net/ssh/kerberos/gss.rb",
-    "lib/net/ssh/kerberos/gss/api.rb",
-    "lib/net/ssh/kerberos/gss/context.rb",
+    "lib/net/ssh/kerberos/context.rb",
+    "lib/net/ssh/kerberos/drivers.rb",
+    "lib/net/ssh/kerberos/drivers/gss.rb",
+    "lib/net/ssh/kerberos/drivers/sspi.rb",
     "lib/net/ssh/kerberos/kex.rb",
     "lib/net/ssh/kerberos/kex/krb5_diffie_hellman_group1_sha1.rb",
     "lib/net/ssh/kerberos/kex/krb5_diffie_hellman_group_exchange_sha1.rb",
-    "lib/net/ssh/kerberos/sspi.rb",
-    "lib/net/ssh/kerberos/sspi/api.rb",
-    "lib/net/ssh/kerberos/sspi/context.rb",
     "test/gss_context_test.rb",
     "test/gss_test.rb",
     "test/net_ssh_kerberos_test.rb",
@@ -60,13 +57,10 @@ Gem::Specification.new do |s|
 
     if Gem::Version.new(Gem::RubyGemsVersion) >= Gem::Version.new('1.2.0') then
       s.add_runtime_dependency(%q<net-ssh>, [">= 2.0"])
-      s.add_runtime_dependency(%q<rubysspi>, [">= 1.3"])
     else
       s.add_dependency(%q<net-ssh>, [">= 2.0"])
-      s.add_dependency(%q<rubysspi>, [">= 1.3"])
     end
   else
     s.add_dependency(%q<net-ssh>, [">= 2.0"])
-    s.add_dependency(%q<rubysspi>, [">= 1.3"])
   end
 end
