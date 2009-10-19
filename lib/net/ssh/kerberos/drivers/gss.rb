@@ -39,6 +39,9 @@ module Net; module SSH; module Kerberos; module Drivers;
 	  GSS_S_UNSEQ_TOKEN     = 8
 	  GSS_S_GAP_TOKEN       = 16
 	
+    GSS_C_GSS_CODE = 1
+    GSS_C_MECH_CODE = 2
+
 	  module API
 	    extend DL::Importable
 	    include DLExtensions
@@ -104,14 +107,8 @@ EOCODE
 	    typealias 'gss_cred_usage_t', 'int'
 	    typealias 'gss_cred_usage_ref', 'int ref'
 	
-	    class GssResult < Struct.new(:major, :minor, :status, :calling_error, :routine_error)
-	      def initialize(result, minor=nil)
-	        self.major = (result >> 16) & 0x0000ffff
-	        self.minor = minor.value if minor.respond_to? :value
-	        self.status = result & 0x0000ffff
-	        self.calling_error = (major >> 8) & 0x00ff
-	        self.routine_error = major & 0x00ff
-	      end
+	    class GssResult
+	      def initialize(code, minor=nil) @value, @minor = code, minor end
 	      def ok?; major.zero? end
 	      def complete?; status.zero? end
 	      def incomplete?; false end
@@ -121,7 +118,22 @@ EOCODE
 	          routine_error==GSS_S_CONTEXT_EXPIRED ||
 	          routine_error==GSS_S_UNAVAILABLE
 	      end
-	      def to_s; "%#4.4x%4.4x [%#8.8x]" % [major, status, minor] end
+	      def major; (@value >> 16) & 0x0000ffff end
+	      def status; @value & 0x0000ffff end
+	      def calling_error; (@value >> 24) & 0x000000ff end
+	      def routine_error; (@value >> 16) & 0x000000ff end
+        def to_i; @value end
+	      def to_s
+          msgctx, msgbuff, msglist = 0, API::GssBuffer.malloc, []
+          begin
+            result = API.gss_display_status @value, GSS_C_GSS_CODE, GSS_C_NO_OID, msgctx, msgbuff
+            result.ok? or return 'unknown'
+            msgctx = API._args_[3]
+            msglist << msgbuff.to_s
+            API.gss_release_buffer msgbuff
+          end until msgctx.zero?
+          msglist.empty? ? 'ok' : msglist.join(', ')
+        end
 	    end
 	
 	    gss_func "gss_acquire_cred", "gss_name_t, OM_uint32, gss_OID_set, gss_cred_usage_t, gss_cred_id_ref, void *, OM_uint32_ref"
@@ -136,6 +148,7 @@ EOCODE
                                         "gss_buffer_t, gss_OID_ref, gss_buffer_t, OM_uint32_ref, OM_uint32_ref"
       gss_func "gss_delete_sec_context", "gss_ctx_id_ref, gss_buffer_t"
 	    gss_func "gss_get_mic", "gss_ctx_id_t, gss_qop_t, gss_buffer_t, gss_buffer_t"
+	    gss_func "gss_display_status", "OM_uint32, int, gss_OID, OM_uint32_ref, gss_buffer_t"
 	
 #	    if @LIBS.empty? and ! defined? Net::SSH::Kerberos::SSPI::Context
 #	      $stderr.puts "error: Failed to a find a supported GSS implementation on this platform (#{RUBY_PLATFORM})"
@@ -171,7 +184,7 @@ EOCODE
 	                                        GSS_C_NO_CHANNEL_BINDINGS, input, nil, buffer, 0, 0
 		    result.failure? and raise GeneralError, "Error initializing security context: #{result}"
 		    begin
-		      @state = State.new(API._args_[1], result, (buffer.to_s if buffer.length > 0), nil)
+		      @state = State.new(API._args_[1], result, buffer.to_s, nil)
 		      @handle = @state.handle if result.complete?
 		      return @state.token
 		    ensure
