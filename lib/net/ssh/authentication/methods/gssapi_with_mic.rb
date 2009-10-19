@@ -12,15 +12,15 @@ module Net
           
           # Attempts to perform gssapi-with-mic Kerberos authentication
           def authenticate(next_service, username, password=nil)
-            gss_klass = (defined?(Net::SSH::Kerberos::SSPI::Context) ?
-	                           Net::SSH::Kerberos::SSPI::Context : Net::SSH::Kerberos::GSS::Context)
+            gss_klass = (defined?(Net::SSH::Kerberos::Drivers::SSPI::Context) ?
+	                           Net::SSH::Kerberos::Drivers::SSPI::Context : Net::SSH::Kerberos::Drivers::GSS::Context)
             gss = nil
             
             # Try to start gssapi-with-mic authentication.
 	          debug { "trying kerberos authentication" }
 	          req = userauth_request(username, next_service, "gssapi-with-mic")
 	          req.write_long(1)
-	          req.write_string(6.chr + GSS_MECH_KRB5.length.chr + GSS_MECH_KRB5)
+	          req.write_string(supported_oid = 6.chr + GSS_KRB5_MECH.length.chr + GSS_KRB5_MECH)
 	          send_message req
 	          message = session.next_message
 	          case message.type
@@ -35,7 +35,7 @@ module Net
 	          
 	          # Try to match the OID.
 	          oid = message.read_string
-	          if oid != SUPPORTED_OID
+	          if oid != supported_oid
               info { "gssapi-with-mic failed (USERAUTH_GSSAPI_RESPONSE)" }
               return false
 	          end

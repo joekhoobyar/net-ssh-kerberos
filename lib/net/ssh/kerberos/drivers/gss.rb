@@ -178,7 +178,7 @@ EOCODE
 		    end
 		  end
 		  
-		  def get_mic(token=nil)
+		  def get_mic(token)
 		    input = API::GssBuffer.malloc
 		    input.value = token.to_ptr
 		    input.length = token.length

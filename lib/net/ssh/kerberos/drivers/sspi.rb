@@ -71,7 +71,7 @@ module Net; module SSH; module Kerberos; module Drivers
       SecBuffer = struct2 [ "ULONG length", "ULONG type", "PCharBuffer data" ] do
         def to_s; data.to_s(length) end
       end
-      typealias "PSecBuffer", "P", nil, nil, "P", PTR_ENC, PTR_DEC(SecBuffer)
+      typealias "PSecBuffer", "P"
       SecBufferDesc = struct2 [ "ULONG version", "ULONG count", "PSecBuffer buffers" ] do
         def buffer(n) SecBuffer.new(@ptr[:buffers] + SecBuffer.size * n) end
       end
@@ -117,7 +117,7 @@ module Net; module SSH; module Kerberos; module Drivers
 				                        'void *, void *, void *, PCredHandle, PTimeStamp)'
       extern 'SECURITY_STATUS QueryCredentialsAttributes(PCredHandle, ULONG, PCtxtBuffer)'
       extern 'SECURITY_STATUS FreeCredentialsHandle(PCredHandle)'
-      extern 'SECURITY_STATUS QueryContextAttributes(PCtxtHandle, ULONG, PCtxtBuffer)'
+      extern 'SECURITY_STATUS QueryContextAttributes(PCtxtHandle, ULONG, void *)'
       extern 'SECURITY_STATUS CompleteAuthToken(PCtxtHandle, PSecBufferDesc)'
       extern 'SECURITY_STATUS MakeSignature(PCtxtHandle, ULONG, PSecBufferDesc, ULONG)'
 			extern 'SECURITY_STATUS InitializeSecurityContext(PCredHandle, PCtxtHandle, char *, '+
@@ -152,29 +152,31 @@ module Net; module SSH; module Kerberos; module Drivers
 			def init(token=nil)
 			  prev = @state.handle if @state && ! @state.handle.nil?
 			  ctx = prev || API::SecHandle.malloc
+			  $stderr.puts "init: #{token.length}" if token
         input = API::SecBufferDesc.create(token) if token
 			  output = API::SecBufferDesc.create(12288)
 			  result = API.initializeSecurityContext @credentials, prev, @target,
 				                 ISC_REQ_DELEGATE | ISC_REQ_MUTUAL_AUTH | ISC_REQ_INTEGRITY, 0,
-				                 SECURITY_NATIVE_DREP, input, 0, ctx, output, 0, ts=TimeStamp.malloc
+				                 SECURITY_NATIVE_DREP, input, 0, ctx, output, 0, ts=API::TimeStamp.malloc
+			  result.failure? and raise GeneralError, "Error initializing security context: #{result}"
 			  result = API.completeAuthToken ctx, output if result.incomplete?
-			  if result.failure?
-			    input.token and raise GeneralError, "Error initializing security context: #{result} #{input.inspect}"
-			  end
-			  @state = State.new(ctx, result, output.buffer(0).to_s, ts)
+			  result.failure? and raise GeneralError, "Error initializing security context: #{result}"
+			  @state = State.new(ctx, result, output.buffers ? output.buffer(0).to_s : nil, ts)
 			  if result.complete?
-			    result = API.queryContextAttributes ctx, SECPKG_ATTR_SIZES, @sizes=SecPkgSizes.new
+			    result = API.queryContextAttributes @state.handle, SECPKG_ATTR_SIZES, @sizes=API::SecPkgSizes.malloc
+				  result.failure? and raise GeneralError, "Error initializing security context: #{result}"
 			    @handle = @state.handle
 			  end
 			  @state.token
 			end
 			
-			def get_mic(token=nil)
+			def get_mic(token)
+			  $stderr.puts "get_mic: #{token.length}"
         desc = API::SecBufferDesc.malloc
         desc.version = 0
         desc.count = 2
-        desc.buffers = SecBuffer.createArray([SECBUFFER_DATA, SECBUFFER_TOKEN],
-		                                         [token, @sizes.max_signature]).first.ptr
+        desc.buffers = API::SecBuffer.createArray([SECBUFFER_DATA, SECBUFFER_TOKEN],
+					                                        [token, @sizes.max_signature]).first.to_ptr
 			  @state.result = API.makeSignature @handle, 0, desc, 0
 			  @state.result.complete? or raise GeneralError, "Error creating the signature: #{result}"
 		    desc.buffer(1).to_s

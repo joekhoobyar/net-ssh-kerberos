@@ -44,7 +44,7 @@ module Net; module SSH; module Kerberos; module Common; class Context
   
   def init(token=nil); raise NotImplementedError, "subclasses must implement this method" end
   
-  def get_mic(token=nil); raise NotImplementedError, "subclasses must implement this method" end
+  def get_mic(token); raise NotImplementedError, "subclasses must implement this method" end
   
   def dispose
     @handle and delete_context @handle
