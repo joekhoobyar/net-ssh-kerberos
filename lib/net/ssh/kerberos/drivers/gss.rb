@@ -69,8 +69,8 @@ EOCODE
 	    typealias 'gss_buffer_desc', 'GssBuffer'
 	    typealias 'gss_buffer_t', 'gss_buffer_desc *'
 	    class GssOID
-				ALIGN = (RUBY_PLATFORM =~ /darwin/ ? 'I' : 'L')
-				ELEMENTS_OFFSET = DL.sizeof(ALIGN)
+				PACK = (RUBY_PLATFORM =~ /darwin/ ? 'I' : "I@#{DL.sizeof('P')}")+'P'
+				ELEMENTS_OFFSET = DL.sizeof(RUBY_PLATFORM =~ /darwin/ ? 'I' : 'P')
 				STRUCT_SIZE = ELEMENTS_OFFSET + DL.sizeof('P')
 
 				def initialize(ptr)
@@ -79,7 +79,7 @@ EOCODE
 
 				def self.create(bytes)
 					v = [bytes.length, bytes]
-					o = new v.pack(ALIGN+'P').to_ptr
+					o = new v.pack(PACK).to_ptr
 					o.instance_variable_set :@unpack, v
 					o
 				end
