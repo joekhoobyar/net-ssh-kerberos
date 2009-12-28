@@ -87,7 +87,7 @@ Rake::RDocTask.new do |rdoc|
     '--main' << 'README.rdoc' <<
     '--charset' << 'utf-8'
 
-  rdoc.rdoc_dir = 'doc'
+  rdoc.rdoc_dir = 'rdoc'
   rdoc.title = "Net::SSH::Kerberos #{version}"
   rdoc.rdoc_files.include('README*')
   rdoc.rdoc_files.include('lib/**/*.rb')
