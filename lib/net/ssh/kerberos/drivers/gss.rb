@@ -68,27 +68,50 @@ EOCODE
       end
 	    typealias 'gss_buffer_desc', 'GssBuffer'
 	    typealias 'gss_buffer_t', 'gss_buffer_desc *'
-	    GssOID = struct2 [ "OM_uint32 length", "gss_bytes_t elements" ] do
-	      def eql?(oid) !oid.nil? && length==oid.length && to_s==oid.to_s end
+	    class GssOID
+				ALIGN = (RUBY_PLATFORM =~ /darwin/ ? 'I' : 'L')
+				ELEMENTS_OFFSET = DL.sizeof(ALIGN)
+				STRUCT_SIZE = ELEMENTS_OFFSET + DL.sizeof('P')
+
+				def initialize(ptr)
+					@ptr = ptr
+				end
+
+				def self.create(bytes)
+					v = [bytes.length, bytes]
+					o = new v.pack(ALIGN+'P').to_ptr
+					o.instance_variable_set :@unpack, v
+					o
+				end
+
+				def length; unpack[0] end
+				def elements; unpack[1] end
+				alias to_s elements
+
+				def eql?(oid) !oid.nil? && length==oid.length && to_s==oid.to_s end
 	      def ==(oid) !oid.nil? && length==oid.length && to_s==oid.to_s end
-        def to_s; elements.to_s(length) if length > 0 end
-	      def inspect; 'OID: ' + (to_s.unpack("H2" * length).join(' ') rescue 'nil') end
+	      def inspect; 'OID: ' + (to_s.unpack("H2" * length).join(' ')) end
+				def to_ptr; @ptr end
+
+				def self.size; STRUCT_SIZE end
+
+			private
+
+				def unpack
+					@unpack ||= (begin
+						v = @ptr.to_s(4).unpack('I')[0]
+						[ v, (@ptr + ELEMENTS_OFFSET).ptr.to_s(v) ]
+					end)
+				end
 	    end
-      def GssOID.create(bytes)
-      	o = malloc
-	o.length = bytes.length
-	o.elements = bytes
-	o
-      end
 	    typealias 'gss_OID', 'P', PTR_ENC, PTR_DEC(GssOID)
 	    typealias 'gss_OID_ref', 'p', PTR_REF_ENC, PTR_REF_DEC(GssOID)
-	    GssOIDSet = struct2 [ "size_t count", "gss_OID elements" ] do
+	    GssOIDSet = struct2 [ "size_t count", "void *elements" ] do
         def oids
-          if @oids.nil? or elements != (@oids.first.to_ptr rescue nil)
-            @oids = []
-            0.upto(count-1) { |n| @oids[n] = GssOID.new(elements + n*GssOID.size) } unless elements.nil?
-          end
-          @oids
+					return @oids unless @oids.nil?
+					@oids, m = [], GssOID.size
+					count.nonzero? and 0.upto(count-1) { |n| @oids[n] = GssOID.new(elements + n * m) }
+					@oids
         end
 	      def inspect; 'OIDSet: [' + oids.map {|o| o.inspect }.join(', ') + ']' end
       end
