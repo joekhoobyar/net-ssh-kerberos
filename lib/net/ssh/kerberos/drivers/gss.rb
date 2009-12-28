@@ -74,7 +74,12 @@ EOCODE
         def to_s; elements.to_s(length) if length > 0 end
 	      def inspect; 'OID: ' + (to_s.unpack("H2" * length).join(' ') rescue 'nil') end
 	    end
-      def GssOID.create(bytes) new [bytes.length, bytes].pack("LP#{bytes.length}").to_ptr end
+      def GssOID.create(bytes)
+      	o = malloc
+	o.length = bytes.length
+	o.elements = bytes
+	o
+      end
 	    typealias 'gss_OID', 'P', PTR_ENC, PTR_DEC(GssOID)
 	    typealias 'gss_OID_ref', 'p', PTR_REF_ENC, PTR_REF_DEC(GssOID)
 	    GssOIDSet = struct2 [ "size_t count", "gss_OID elements" ] do
