@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{net-ssh-kerberos}
-  s.version = "0.2.1"
+  s.version = "0.2.2"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Joe Khoobyar"]
-  s.date = %q{2009-10-19}
+  s.date = %q{2009-12-28}
   s.description = %q{Extends Net::SSH by adding Kerberos authentication capability for password-less logins on multiple platforms.
 }
   s.email = %q{joe@ankhcraft.com}
@@ -53,12 +53,12 @@ Gem::Specification.new do |s|
   s.rubygems_version = %q{1.3.5}
   s.summary = %q{Add Kerberos support to Net::SSH}
   s.test_files = [
-    "test/gss_context_test.rb",
+    "test/test_helper.rb",
+     "test/gss_context_test.rb",
      "test/gss_test.rb",
      "test/net_ssh_kerberos_test.rb",
      "test/sspi_context_test.rb",
-     "test/sspi_test.rb",
-     "test/test_helper.rb"
+     "test/sspi_test.rb"
   ]
 
   if s.respond_to? :specification_version then
