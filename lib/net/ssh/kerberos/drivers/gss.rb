@@ -91,7 +91,8 @@ EOCODE
 				def eql?(oid) !oid.nil? && length==oid.length && to_s==oid.to_s end
 	      def ==(oid) !oid.nil? && length==oid.length && to_s==oid.to_s end
 	      def inspect; 'OID: ' + (to_s.unpack("H2" * length).join(' ')) end
-				def to_ptr; @ptr end
+				def ptr; @ptr end
+				alias to_ptr ptr
 
 				def self.size; STRUCT_SIZE end
 
@@ -110,7 +111,7 @@ EOCODE
         def oids
 					return @oids unless @oids.nil?
 					@oids, m = [], GssOID.size
-					count.nonzero? and 0.upto(count-1) { |n| @oids[n] = GssOID.new(elements + n * m) }
+					count.nonzero? and 0.upto(count-1) { |n| @oids[n] = GssOID.new(elements + n * m); @oids[n].ptr.size = m }
 					@oids
         end
 	      def inspect; 'OIDSet: [' + oids.map {|o| o.inspect }.join(', ') + ']' end
