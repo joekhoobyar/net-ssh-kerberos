@@ -62,7 +62,7 @@ module Net; module SSH; module Kerberos; module Drivers
       typealias "PCredHandle", "PSecHandle"
       typealias "PCtxtHandle", "PSecHandle"
       SecBuffer = struct2 [ "ULONG length", "ULONG type", "PCharBuffer data" ] do
-        def to_s; data.to_s(length) end
+        def to_s; length.zero? ? '' : data.to_s(length) end
       end
       typealias "PSecBuffer", "P"
       SecBufferDesc = struct2 [ "ULONG version", "ULONG count", "PSecBuffer buffers" ] do
@@ -164,7 +164,8 @@ module Net; module SSH; module Kerberos; module Drivers
 			  result.failure? and raise GeneralError, "Error initializing security context: #{result}"
 			  result = API.completeAuthToken ctx, output if result.incomplete?
 			  result.failure? and raise GeneralError, "Error initializing security context: #{result}"
-			  @state = State.new(ctx, result, output.buffers ? output.buffer(0).to_s : nil, ts)
+        bdata = output.buffer(0).to_s if output.buffers and output.count > 0 and output.buffer(0)
+			  @state = State.new(ctx, result, bdata, ts)
 			  if result.complete?
 			    result = API.queryContextAttributes @state.handle, SECPKG_ATTR_SIZES, @sizes=API::SecPkgSizes.malloc
 				  result.failure? and raise GeneralError, "Error initializing security context: #{result}"
