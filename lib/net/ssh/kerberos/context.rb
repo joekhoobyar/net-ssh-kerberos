@@ -24,7 +24,7 @@ module Net; module SSH; module Kerberos
 	
 	      z = (user.include?('@') ? user.gsub('@','/') : user+'/')
 	      unless z.downcase == @cred_krb_name[0,z.length].downcase
-	        raise GeneralError, "Credentials mismatch: current is #{@cred_name}, requested is #{user}"
+	        puts "[I] Credentials mismatch: current is #{@cred_name}, requested is #{user}"
 	      end
 	      @credentials = creds
 	    ensure
