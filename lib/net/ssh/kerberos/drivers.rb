@@ -46,7 +46,7 @@ module Net; module SSH; module Kerberos;
 		@@available = []
     def self.available; @@available end
 
-		if %w(win dar mingw).any?{|p| RUBY_PLATFORM.include?(p)}; then
+		if RUBY_PLATFORM =~ /mingw/ || (RUBY_PLATFORM =~ /win/ && RUBY_PLATFORM !~ /darwin/)
 		  begin require 'net/ssh/kerberos/drivers/sspi'; available << 'SSPI'
 		  rescue => e
 		    raise e unless RuntimeError === e and e.message =~ /^LoadLibrary: ([^\s]+)/
