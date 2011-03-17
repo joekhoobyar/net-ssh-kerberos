@@ -23,6 +23,11 @@ Add the following lines to the top of your Capfile (the relevant :auth_method is
 - Supports enterprise-level Kerberos-based security (tested with Centrify DC)
 - Cross-forest authentication is supported, including mixed environment (tested with Centrify DC in a mixed Windows/Linux environment)
 
+== Contributors
+
+- Joe Khoobyar    http://github.com/joekhoobyar
+- Joshua Ballanco http://github.com/jballanc
+
 == Copyright
 
-Copyright (c) 2009 Joe Khoobyar. See LICENSE for details.
+Copyright (c) 2009-2011 Joe Khoobyar. See LICENSE for details.
