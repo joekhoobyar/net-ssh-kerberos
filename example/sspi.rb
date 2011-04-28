@@ -21,7 +21,7 @@ if result.ok?
   pkg_info = API._args_[1]
   $stderr.puts "querySecurityPackageInfo: (#{result}) #{pkg_info.comment} (max_token=#{pkg_info.max_token})"
   @max_token = pkg_info.max_token
-  result = API.freeContextBuffer pkg_info
+  result = API.freeContextBuffer pkg_info.to_ptr
   $stderr.puts "freeContextBuffer: (#{result})"
 else
   $stderr.puts "querySecurityPackageInfo: (#{result})"
@@ -39,21 +39,15 @@ if result.ok?
       result = API.freeContextBuffer names
       $stderr.puts "freeContextBuffer: (#{result})"
 
-      token = API::SecBuffer.malloc
-      token.type = SECBUFFER_TOKEN
-      token.data = "\0" * @max_token
-      token.length = @max_token
-      output = API::SecBufferDesc.malloc
-      output.version = 0
-      output.count = 1
-      output.buffers = token.to_ptr
+      output = API::SecBufferDesc.create @max_token
+      if $DEBUG
+        $stderr.puts "SecBufferDesc.create: #{output.inspect} => #{output.buffer(0).inspect} => #{output.buffer(0).data.inspect}"
+      end
       result = API.initializeSecurityContext creds, nil, 'host/'+Socket.gethostbyname('localhost')[0], 
                                              ISC_REQ_DELEGATE | ISC_REQ_MUTUAL_AUTH | ISC_REQ_INTEGRITY, 0, SECURITY_NATIVE_DREP,
                                              nil, 0, ctx=API::SecHandle.malloc, output, 0, ts=API::TimeStamp.malloc
       if result.ok?
         $stderr.puts "initializeSecurityContext: (#{result}) ctx=#{! ctx.nil?} token.length=#{output.buffer(0).length}"
-        result = API.freeContextBuffer token.data
-        $stderr.puts "freeContextBuffer: (#{result})"
         result = API.deleteSecurityContext ctx
         $stderr.puts "deleteSecurityContext: (#{result})"
       else

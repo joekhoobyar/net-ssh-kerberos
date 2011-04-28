@@ -14,7 +14,7 @@ if Net::SSH::Kerberos::Drivers.available.include? 'SSPI'
     assert_equal pkg_info.name.to_s, "Kerberos"
     assert pkg_info.max_token >= 128, "The maximum token size is assumed to be greater than 127 bytes"
     assert pkg_info.max_token <= 12288, "The maximum token size is assumed to be less than 12289 bytes"
-    result = API.freeContextBuffer pkg_info
+    result = API.freeContextBuffer pkg_info.to_ptr
     assert result.ok?, "freeContextBuffer failed: #{result}"
   end
 
@@ -40,7 +40,7 @@ if Net::SSH::Kerberos::Drivers.available.include? 'SSPI'
             begin
               assert ! ctx.nil?, "Should initialize a context handle"
               assert ! output.buffer(0).data.nil?, "Should output a token into the buffer"
-              assert output.buffer(0).length < 12288, "Should output a token into the buffer"
+              assert output.buffer(0).length <= 12288, "Should output a token into the buffer"
             ensure
               ctx = nil if (result = API.deleteSecurityContext(ctx)).ok?
             end

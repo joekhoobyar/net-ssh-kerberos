@@ -57,7 +57,7 @@ module Net; module SSH; module Kerberos; module Drivers
       SecPkgInfo = struct [ "ULONG capabilities", "USHORT version", "USHORT rpcid",
                             "ULONG max_token", "SEC_CHAR *name", "SEC_CHAR *comment" ]
       typealias "PSecPkgInfo", "p", PTR_REF_ENC, PTR_REF_DEC(SecPkgInfo)
-      SecHandle = struct2([ "ULONG lower", "ULONG upper" ]) do def nil?; lower.zero? && upper.zero? end end
+      SecHandle = struct2([ "S lower", "S upper" ]) do def nil?; lower.nil? && upper.nil? end end
       typealias "PSecHandle", "P"
       typealias "PCredHandle", "PSecHandle"
       typealias "PCtxtHandle", "PSecHandle"
@@ -69,7 +69,7 @@ module Net; module SSH; module Kerberos; module Drivers
         def buffer(n) SecBuffer.new(@ptr[:buffers] + SecBuffer.size * n) end
       end
       typealias "PSecBufferDesc", "P"
-      TimeStamp = SecHandle
+      TimeStamp = struct2([ "ULONG lower", "ULONG upper" ]) do def nil?; lower.zero? && upper.zero? end end
       typealias "PTimeStamp", "P"
       SecPkgSizes = struct [ "ULONG max_token", "ULONG max_signature",
                              "ULONG block_size", "ULONG security_trailer" ]
@@ -147,7 +147,7 @@ module Net; module SSH; module Kerberos; module Drivers
     result = API.querySecurityPackageInfo "Kerberos", nil
     if result.ok? and ! (pkg_info = API._args_[1]).nil?
       @@max_token = pkg_info.max_token
-      API.freeContextBuffer pkg_info
+      API.freeContextBuffer pkg_info.to_ptr
     else
       raise "SSPI reports no support for Kerberos authentication"
     end
@@ -157,14 +157,14 @@ module Net; module SSH; module Kerberos; module Drivers
 			  prev = @state.handle if @state && ! @state.handle.nil?
 			  ctx = prev || API::SecHandle.malloc
 			  input = API::SecBufferDesc.create(token) if token
-			  output = API::SecBufferDesc.create(12288)
+			  output = API::SecBufferDesc.create(SSPI.max_token || 12288)
 			  result = API.initializeSecurityContext @credentials, prev, @target,
 				                 ISC_REQ_DELEGATE | ISC_REQ_MUTUAL_AUTH | ISC_REQ_INTEGRITY, 0,
 				                 SECURITY_NATIVE_DREP, input, 0, ctx, output, 0, ts=API::TimeStamp.malloc
 			  result.failure? and raise GeneralError, "Error initializing security context: #{result}"
 			  result = API.completeAuthToken ctx, output if result.incomplete?
 			  result.failure? and raise GeneralError, "Error initializing security context: #{result}"
-        bdata = output.buffer(0).to_s if output.buffers and output.count > 0 and output.buffer(0)
+        bdata = output.buffer(0).to_s if output.count > 0 and output.buffers and output.buffer(0)
 			  @state = State.new(ctx, result, bdata, ts)
 			  if result.complete?
 			    result = API.queryContextAttributes @state.handle, SECPKG_ATTR_SIZES, @sizes=API::SecPkgSizes.malloc

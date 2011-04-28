@@ -26,7 +26,7 @@ module Net; module SSH; module Kerberos
 	      @credentials = creds
 	    ensure
 	      if @credentials.nil?
-	        release_credentials creds
+	        release_credentials creds unless creds.nil?
 	        @cred_name = @cred_krb_name = nil
 	      end
 	    end
