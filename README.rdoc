@@ -27,6 +27,7 @@ Add the following lines to the top of your Capfile (the relevant :auth_method is
 
 - Joe Khoobyar    http://github.com/joekhoobyar
 - Joshua Ballanco http://github.com/jballanc
+- Liu Lantao      http://github.com/Lax
 
 == Copyright
 
