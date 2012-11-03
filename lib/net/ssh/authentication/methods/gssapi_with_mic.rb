@@ -1,5 +1,6 @@
 require 'net/ssh/authentication/methods/abstract'
 require 'net/ssh/kerberos/constants'
+require 'gssapi'
 
 module Net
   module SSH
@@ -12,9 +13,7 @@ module Net
           
           # Attempts to perform gssapi-with-mic Kerberos authentication
           def authenticate(next_service, username, password=nil)
-            gss_klass = (defined?(Net::SSH::Kerberos::Drivers::SSPI::Context) ?
-	                           Net::SSH::Kerberos::Drivers::SSPI::Context : Net::SSH::Kerberos::Drivers::GSS::Context)
-            gss = nil
+              gss = nil
             
             # Try to start gssapi-with-mic authentication.
 	          debug { "trying kerberos authentication" }
@@ -41,14 +40,17 @@ module Net
 	          end
 	          
 	          # Try to complete the handshake.
-	          gss = gss_klass.new
-	          gss.create username, hostname
+	          gss = GSSAPI::Simple.new hostname
+	          gss.acquire_credentials
+
+              established = false
 			      debug { "gssapi-with-mic handshaking" }
-	          until gss.established?
-	            token = gss.init(token)
+	          until established
+	            token = gss.init_context(token)
+	            break if token === true
 	            if token && token.length > 0
 					      send_message Net::SSH::Buffer.from(:byte, USERAUTH_GSSAPI_TOKEN, :string, token)
-	              unless gss.established?
+	            
 	                message = session.next_message
 				          case message.type
 				          when USERAUTH_GSSAPI_ERROR
@@ -64,7 +66,7 @@ module Net
 				            return false
 				          end
 	                token = message.read_string
-	              end
+	              
 	            end
 	          end
 	          
@@ -88,8 +90,6 @@ module Net
 	            else
 	              raise Net::SSH::Exception, "unexpected server response to USERAUTH_REQUEST: #{message.type} (#{message.inspect})"
 	          end
-          ensure
-			      gss and gss.dispose
           end
 
           private

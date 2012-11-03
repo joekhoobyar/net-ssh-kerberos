@@ -18,11 +18,11 @@ Gem::Specification.new do |s|
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
   s.homepage = %q{http://github.com/joekhoobyar/net-ssh-kerberos}
   s.require_paths = ["lib"]
-  s.required_ruby_version = Gem::Requirement.new("< 1.9")
   s.rubyforge_project = %q{net-ssh-krb}
   s.rubygems_version = %q{1.7.2}
   s.summary = %q{Add Kerberos support to Net::SSH}
 
   s.add_dependency 'net-ssh', '>= 2.0'
+  s.add_dependency 'gssapi', '~> 1.1.2'
 end
 
