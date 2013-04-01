@@ -1,4 +1,4 @@
-= net-ssh-kerberos
+# net-ssh-kerberos
 
 Add Kerberos (password-less) authentication capabilities to Net::SSH, without the need for modifying Net::SSH source code.
 
@@ -8,27 +8,23 @@ No more getting locked out of the network because you mis-typed your password - 
 public key or host-based authentication.  If your organization uses Kerberos (many mid-to-large size corporations do),
 you can use this package to get password-less authentication without breaking your company's security guidelines.
 
-== How to use with Capistrano
+## How to use with Capistrano
 
 Add the following lines to the top of your Capfile (the relevant :auth_method is "gssapi-with-mic")
 
+```
   require 'net/ssh/kerberos'
   set :ssh_options, { :auth_methods => %w(gssapi-with-mic publickey hostbased password keyboard-interactive) }
+```
 
-
-== Supported Platforms
-
-- UNIX systems use the GSSAPI for Kerberos 5 integration. (tested on RedHat Linux)
-- Windows systems use Microsoft SSPI for Kerberos 5 integration. (tested on Windows XP)
-- Supports enterprise-level Kerberos-based security (tested with Centrify DC)
-- Cross-forest authentication is supported, including mixed environment (tested with Centrify DC in a mixed Windows/Linux environment)
-
-== Contributors
+## Contributors
 
 - Joe Khoobyar    http://github.com/joekhoobyar
 - Joshua Ballanco http://github.com/jballanc
 - Liu Lantao      http://github.com/Lax
+- Chris Beer	  http://github.com/cbeer
+- Linda Julien    http://github.com/ljulien
 
-== Copyright
+## Copyright
 
 Copyright (c) 2009-2011 Joe Khoobyar. See LICENSE for details.
