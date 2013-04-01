@@ -41,7 +41,6 @@ module Net
 	          
 	          # Try to complete the handshake.
 	          gss = GSSAPI::Simple.new hostname
-	          gss.acquire_credentials
 
               established = false
 			      debug { "gssapi-with-mic handshaking" }
