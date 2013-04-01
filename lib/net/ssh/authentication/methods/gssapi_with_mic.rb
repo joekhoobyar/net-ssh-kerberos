@@ -41,12 +41,12 @@ module Net
 	          
 	          # Try to complete the handshake.
 	          gss = GSSAPI::Simple.new hostname
-	          gss.acquire_credentials
 
               established = false
 			      debug { "gssapi-with-mic handshaking" }
 	          until established
-	            token = gss.init_context(token)
+	            # :delegate => true always forwards tickets.  This may or may not be a good idea, and should really be a user-specified option.
+	            token = gss.init_context(token, :delegate => true)
 	            break if token === true
 	            if token && token.length > 0
 					      send_message Net::SSH::Buffer.from(:byte, USERAUTH_GSSAPI_TOKEN, :string, token)
