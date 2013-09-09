@@ -19,7 +19,8 @@ module Net
 	          debug { "trying kerberos authentication" }
 	          req = userauth_request(username, next_service, "gssapi-with-mic")
 	          req.write_long(1)
-	          req.write_string(supported_oid = 6.chr + GSS_KRB5_MECH.length.chr + GSS_KRB5_MECH)
+	          supported_oid = (6.chr + GSS_KRB5_MECH.length.chr + GSS_KRB5_MECH).force_encoding(Encoding::ASCII_8BIT)
+	          req.write_string(supported_oid)
 	          send_message req
 	          message = session.next_message
 	          case message.type
@@ -33,7 +34,7 @@ module Net
 	          end
 	          
 	          # Try to match the OID.
-	          oid = message.read_string
+	          oid = message.read_string.force_encoding(Encoding::ASCII_8BIT)
 	          if oid != supported_oid
               info { "gssapi-with-mic failed (USERAUTH_GSSAPI_RESPONSE)" }
               return false
