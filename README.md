@@ -17,6 +17,28 @@ Add the following lines to the top of your Capfile (the relevant :auth_method is
   set :ssh_options, { :auth_methods => %w(gssapi-with-mic publickey hostbased password keyboard-interactive) }
 ```
 
+## How to use with 'net/ssh'
+
+With bundler, add the following lines to Gemfile.
+
+```
+  gem 'net-ssh', :require => 'net/ssh'
+  gem 'net-ssh-krb'
+```
+
+Set :auth_methods in Net::SSH options.
+
+```
+  #!/usr/bin/env ruby
+  require 'rubygems'
+  require 'bundler'
+  Bundler.require
+
+  Net::SSH.start('10.3.18.198', 'root', {:auth_methods => ["gssapi-with-mic"]}) do |ssh|
+    puts ssh.exec!('hostname')
+  end
+```
+
 ## Contributors
 
 - Joe Khoobyar    http://github.com/joekhoobyar
