@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{net-ssh-krb}
-  s.version = "0.3.0"
+  s.version = "0.4.0"
   s.authors = ["Joe Khoobyar", "Chris Beer"]
   s.description = %q{Extends Net::SSH by adding Kerberos authentication capability for password-less logins on multiple platforms.
 }
