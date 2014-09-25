@@ -7,3 +7,4 @@ doc
 rdoc
 pkg
 Capfile
+Gemfile.lock
