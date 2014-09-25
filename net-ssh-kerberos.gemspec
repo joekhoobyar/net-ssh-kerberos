@@ -17,7 +17,7 @@ Gem::Specification.new do |s|
   s.summary = %q{Add Kerberos support to Net::SSH}
 
   s.add_dependency 'net-ssh', '>= 2.0'
-  s.add_dependency 'gssapi', '~> 1.1.2'
+  s.add_dependency 'gssapi', '~> 1.2.0'
   s.add_development_dependency 'rspec'
 end
 
